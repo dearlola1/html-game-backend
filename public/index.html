@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple HTML Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        canvas {
+            background-color: #87CEEB;
+            display: block;
+            width: 430px;  /* iPhone 15 viewport width */
+            height: 932px; /* iPhone 15 viewport height */
+        }
+
+        #gameOver, #startScreen, #highScores {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #gameOver {
+            display: none;
+        }
+
+        #highScores {
+            display: none;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, 0);
+        }
+
+        #gameOver button, #startScreen button, #highScores button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .character-select {
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="startScreen">
+        <h1>Select Your Character</h1>
+        <div>
+            <button class="character-select" onclick="selectCharacter('drake')">Drake</button>
+            <button class="character-select" onclick="selectCharacter('kendrick')">Kendrick</button>
+        </div>
+    </div>
+    <div id="gameOver">
+        <h1 id="gameOverText">Game Over</h1>
+        <p id="finalScore">Final Score: 0</p>
+        <button onclick="restartGame()">Restart</button>
+    </div>
+    <div id="highScores">
+        <h2>High Scores</h2>
+        <ul id="highScoreList"></ul>
+        <button onclick="closeHighScores()">Close</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverUI = document.getElementById('gameOver');
+        const gameOverText = document.getElementById('gameOverText');
+        const finalScore = document.getElementById('finalScore');
+        const highScoresUI = document.getElementById('highScores');
+        const highScoreList = document.getElementById('highScoreList');
+
+        const drakeImage = new Image();
+        drakeImage.src = 'https://i.imgur.com/oNnc2WL.png'; // Replace with your Drake PNG URL
+        drakeImage.onerror = () => console.log('Error loading Drake image');
+
+        const kendrickImage = new Image();
+        kendrickImage.src = 'https://i.imgur.com/8DLtz2J.png'; // Replace with your Kendrick PNG URL
+        kendrickImage.onerror = () => console.log('Error loading Kendrick image');
+
+        const projectileImage = new Image();
+        projectileImage.src = 'https://i.imgur.com/F24I2a9.png'; // Replace with your projectile PNG URL
+        projectileImage.onerror = () => console.log('Error loading projectile image');
+
+        const redBoxProjectileImage = new Image();
+        redBoxProjectileImage.src = 'https://i.imgur.com/W6Ebd9d.png'; // Replace with your red box projectile PNG URL
+        redBoxProjectileImage.onerror = () => console.log('Error loading red box projectile image');
+
+        const purpleBoxImage = new Image();
+        purpleBoxImage.src = 'https://example.com/path/to/purple-box.png'; // Replace with your Purple Box PNG URL
+        purpleBoxImage.onerror = () => console.log('Error loading Purple Box image');
+
+        const brownBoxImage = new Image();
+        brownBoxImage.src = 'https://i.imgur.com/TJ9oMkH.png'; // Replace with your Brown Box PNG URL
+        brownBoxImage.onerror = () => console.log('Error loading Brown Box image');
+
+        const redBoxImage = new Image();
+        redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png'; // Replace with your Red Box PNG URL
+        redBoxImage.onerror = () => console.log('Error loading Red Box image');
+
+        canvas.width = 430;
+        canvas.height = 932;
+
+        let player, npc, projectiles, npcProjectiles, boxes, walls, damageIndicators;
+        let isCameraShaking = false;
+        let cameraShakeDuration = 0;
+        let gameLoopInterval, spawnBoxTimeout, npcShootInterval;
+        let selectedPlayer;
+        let lastTime = 0;
+        let gameStartTime = 0;
+        let playerScore = 0;
+
+        async function submitHighScore(playerName, score) {
+            try {
+                const response = await fetch('https://kendrickvsdrake-afe300f0b023.herokuapp.com/highscores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ player: playerName, score: score })
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('High score submitted:', data);
+            } catch (error) {
+                console.error('Error submitting high score:', error);
+            }
+        }
+
+        async function fetchHighScores() {
+            try {
+                const response = await fetch('https://kendrickvsdrake-afe300f0b023.herokuapp.com/highscores');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching high scores:', error);
+            }
+        }
+
+        async function updateHighScores() {
+            const highScores = await fetchHighScores();
+            highScoreList.innerHTML = '';
+            highScores.forEach(score => {
+                const li = document.createElement('li');
+                li.textContent = `${score.player}: ${score.score}`;
+                highScoreList.appendChild(li);
+            });
+            highScoresUI.style.display = 'block';
+        }
+
+        function closeHighScores() {
+            highScoresUI.style.display = 'none';
+        }
+
+        function selectCharacter(character) {
+            selectedPlayer = character;
+            const npcCharacter = character === 'drake' ? 'kendrick' : 'drake';
+            initGame(character, npcCharacter);
+            startScreen.style.display = 'none';
+            gameStartTime = performance.now();
+            gameLoopInterval = requestAnimationFrame(gameLoop);
+        }
+
+        function initGame(playerCharacter, npcCharacter) {
+            console.log("Initializing game with player:", playerCharacter, "and NPC:", npcCharacter);
+
+            const playerImage = playerCharacter === 'drake' ? drakeImage : kendrickImage;
+            const npcImage = npcCharacter === 'drake' ? drakeImage : kendrickImage;
+
+            player = {
+                x: 30,
+                y: canvas.height - 120,
+                width: 40,
+                height: 80,
+                image: playerImage,
+                dy: 0,
+                gravity: 0.4,
+                jumpStrength: -9, // Adjusted jump strength for more natural movement
+                onGround: true,
+                hp: 222,
+                canShoot: true,
+                jumpCount: 0,
+                maxJumps: 2,
+                isFlashing: false,
+                flashTimer: 0,
+            };
+
+            npc = {
+                x: canvas.width - 70,
+                y: canvas.height - 120,
+                width: 40,
+                height: 80,
+                image: npcImage,
+                dy: 0,
+                gravity: 0.4,
+                jumpStrength: -9, // Adjusted jump strength for more natural movement
+                onGround: true,
+                hp: 222,
+                canShoot: true,
+                jumpCount: 0,
+                maxJumps: 2,
+                isFlashing: false,
+                flashTimer: 0,
+            };
+
+            projectiles = [];
+            npcProjectiles = [];
+            boxes = [];
+            walls = [];
+            damageIndicators = [];
+            playerScore = 0;  // Reset player score
+            gameOverUI.style.display = 'none';
+
+            clearInterval(npcShootInterval);
+
+            npcShootInterval = setInterval(npcShoot, 600);
+
+            const initialSpawnInterval = Math.floor(Math.random() * 8000) + 7000;
+            clearTimeout(spawnBoxTimeout);
+            spawnBoxTimeout = setTimeout(spawnBox, initialSpawnInterval);
+        }
+
+        function getRandomDamage() {
+            return Math.floor(Math.random() * 5) + 2;
+        }
+
+        function getRandomHeal() {
+            return Math.floor(Math.random() * 11) + 10;
+        }
+
+        function drawCharacter(character) {
+            ctx.save();
+            if (character.isFlashing) {
+                ctx.globalAlpha = character.flashTimer % 2 === 0 ? 1 : 0.5;
+                character.flashTimer++;
+                if (character.flashTimer > 10) {
+                    character.isFlashing = false;
+                    character.flashTimer = 0;
+                }
+            }
+            if (character === npc) {
+                ctx.scale(-1, 1);
+                ctx.drawImage(character.image, -character.x - character.width, character.y, character.width, character.height);
+            } else {
+                ctx.drawImage(character.image, character.x, character.y, character.width, character.height);
+            }
+            ctx.restore();
+            ctx.globalAlpha = 1;
+        }
+
+        function drawPlatforms() {
+            const platformHeight = 20;
+            const platformWidth = canvas.width / 2 - 100;
+            const platformY = canvas.height - 100;
+
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, platformY, platformWidth, platformHeight);
+            ctx.fillRect(canvas.width - platformWidth, platformY, platformWidth, platformHeight);
+        }
+
+        function drawProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const projectile = projectiles[i];
+                projectile.x += projectile.dx;
+                projectile.y += projectile.dy || 0;
+
+                if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
+                    ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
+                } else {
+                    ctx.fillStyle = projectile.color;
+                    ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+                }
+
+                if (npc && projectile.owner !== 'npc' && 
+                    projectile.x + projectile.width >= npc.x &&
+                    projectile.x <= npc.x + npc.width &&
+                    projectile.y >= npc.y &&
+                    projectile.y <= npc.y + npc.height) {
+                    const damage = getRandomDamage();
+                    npc.hp -= damage;
+                    npc.isFlashing = true;
+                    playerScore += damage; // Increase score when hitting the NPC
+                    damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `-${damage}`, opacity: 1 });
+                    projectiles.splice(i, 1);
+                }
+
+                for (let j = boxes.length - 1; j >= 0; j--) {
+                    const box = boxes[j];
+                    if (projectile.x + projectile.width >= box.x
+                        && projectile.x <= box.x + box.width
+                        && projectile.y >= box.y
+                        && projectile.y <= box.y + box.height) {
+                        const damage = getRandomDamage();
+                        box.hp -= damage;
+                        box.isFlashing = true;
+                        playerScore += damage; // Increase score when hitting a box
+                        damageIndicators.push({ x: box.x + box.width / 2, y: box.y - 10, text: `-${damage}`, opacity: 1 });
+                        if (box.hp <= 0) {
+                            handleBoxDestruction(box, projectile.owner);
+                            boxes.splice(j, 1);
+                        }
+                        projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+
+                for (let j = walls.length - 1; j >= 0; j--) {
+                    const wall = walls[j];
+                    if (projectile.x + projectile.width >= wall.x
+                        && projectile.x <= wall.x + wall.width
+                        && projectile.y >= wall.y
+                        && projectile.y <= wall.y + wall.height) {
+                        const damage = getRandomDamage();
+                        wall.hp -= damage;
+                        wall.isFlashing = true;
+                        playerScore += damage; // Increase score when hitting a wall
+                        damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
+                        if (wall.hp <= 0) {
+                            walls.splice(j, 1);
+                        }
+                        projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+
+                if (projectile.x > canvas.width || projectile.x < 0 || projectile.y > canvas.height || projectile.y < 0) {
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawNpcProjectiles() {
+            for (let i = npcProjectiles.length - 1; i >= 0; i--) {
+                const projectile = npcProjectiles[i];
+                projectile.x += projectile.dx;
+                projectile.y += projectile.dy || 0;
+
+                if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
+                    ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
+                } else {
+                    ctx.fillStyle = projectile.color;
+                    ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+                }
+
+                if (player && projectile.x + projectile.width >= player.x
+                    && projectile.x <= player.x + player.width
+                    && projectile.y >= player.y
+                    && projectile.y <= player.y + player.height) {
+                    const damage = getRandomDamage();
+                    player.hp -= damage;
+                    player.isFlashing = true;
+                    playerScore -= damage; // Decrease score when the player is hit
+                    triggerCameraShake();
+                    damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
+                    npcProjectiles.splice(i, 1);
+                }
+
+                if (projectile.owner !== 'npc' && npc
+                    && projectile.x + projectile.width >= npc.x
+                    && projectile.x <= npc.x + npc.width
+                    && projectile.y >= npc.y
+                    && projectile.y <= npc.y + npc.height) {
+                    const damage = getRandomDamage();
+                    npc.hp -= damage;
+                    npc.isFlashing = true;
+                    damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `-${damage}`, opacity: 1 });
+                    npcProjectiles.splice(i, 1);
+                }
+
+                if (!projectile.fromRedBox) {
+                    for (let j = boxes.length - 1; j >= 0; j--) {
+                        const box = boxes[j];
+                        if (projectile.x + projectile.width >= box.x
+                            && projectile.x <= box.x + box.width
+                            && projectile.y >= box.y
+                            && projectile.y <= box.y + box.height) {
+                            const damage = getRandomDamage();
+                            box.hp -= damage;
+                            box.isFlashing = true;
+                            damageIndicators.push({ x: box.x + box.width / 2, y: box.y - 10, text: `-${damage}`, opacity: 1 });
+                            if (box.hp <= 0) {
+                                handleBoxDestruction(box, 'npc');
+                                boxes.splice(j, 1);
+                            }
+                            npcProjectiles.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+
+                for (let j = walls.length - 1; j >= 0; j--) {
+                    const wall = walls[j];
+                    if (projectile.x + projectile.width >= wall.x
+                        && projectile.x <= wall.x + wall.width
+                        && projectile.y >= wall.y
+                        && projectile.y <= wall.y + wall.height) {
+                        const damage = getRandomDamage();
+                        wall.hp -= damage;
+                        wall.isFlashing = true;
+                        damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
+                        if (wall.hp <= 0) {
+                            walls.splice(j, 1);
+                        }
+                        npcProjectiles.splice(i, 1);
+                        break;
+                    }
+                }
+
+                if (projectile.x > canvas.width || projectile.x < 0 || projectile.y > canvas.height || projectile.y < 0) {
+                    npcProjectiles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawBoxes() {
+            for (let i = boxes.length - 1; i >= 0; i--) {
+                const box = boxes[i];
+                box.y += box.dy;
+                box.x += Math.sin(box.y / 20) * 1;
+
+                if (box.isFlashing) {
+                    ctx.globalAlpha = box.flashTimer % 2 === 0 ? 1 : 0.5;
+                    box.flashTimer++;
+                    if (box.flashTimer > 10) {
+                        box.isFlashing = false;
+                        box.flashTimer = 0;
+                    }
+                }
+
+                let boxImage;
+                if (box.type === 'purple') {
+                    boxImage = purpleBoxImage;
+                } else if (box.type === 'brown') {
+                    boxImage = brownBoxImage;
+                } else if (box.type === 'red') {
+                    boxImage = redBoxImage;
+                }
+
+                if (boxImage && boxImage.complete && boxImage.naturalWidth !== 0) {
+                    ctx.drawImage(boxImage, box.x, box.y, box.width, box.height);
+                } else {
+                    ctx.fillStyle = box.color;
+                    ctx.fillRect(box.x, box.y, box.width, box.height);
+                }
+                ctx.globalAlpha = 1;
+
+                if (box.y > canvas.height) {
+                    boxes.splice(i, 1);
+                }
+            }
+        }
+
+        function drawWalls() {
+            for (let i = walls.length - 1; i >= 0; i--) {
+                const wall = walls[i];
+                if (wall.isFlashing) {
+                    ctx.globalAlpha = wall.flashTimer % 2 === 0 ? 1 : 0.5;
+                    wall.flashTimer++;
+                    if (wall.flashTimer > 10) {
+                        wall.isFlashing = false;
+                        wall.flashTimer = 0;
+                    }
+                }
+
+                ctx.fillStyle = wall.color;
+                ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+
+                if (wall.hp <= 0) {
+                    walls.splice(i, 1);
+                }
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function updatePlayer(deltaTime) {
+            if (player) {
+                player.dy += player.gravity * deltaTime / 16.67;
+                player.y += player.dy * deltaTime / 16.67;
+
+                if (player.y + player.height > canvas.height - 100) {
+                    player.y = canvas.height - 100 - player.height;
+                    player.dy = 0;
+                    player.onGround = true;
+                    player.jumpCount = 0;
+                }
+            }
+        }
+
+        function updateNpc(deltaTime) {
+            if (npc) {
+                npc.dy += npc.gravity * deltaTime / 16.67;
+                npc.y += npc.dy * deltaTime / 16.67;
+
+                if (npc.y + npc.height > canvas.height - 100) {
+                    npc.y = canvas.height - 100 - npc.height;
+                    npc.dy = 0;
+                    npc.onGround = true;
+                    npc.jumpCount = 0;
+                }
+
+                projectiles.forEach(projectile => {
+                    if (projectile.x > npc.x - 75 && projectile.x < npc.x && projectile.y >= npc.y && projectile.y <= npc.y + npc.height && npc.jumpCount < npc.maxJumps) {
+                        if (Math.random() > 0.1) {
+                            npc.dy = npc.jumpStrength;
+                            npc.onGround = false;
+                            npc.jumpCount++;
+
+                            if (npc.jumpCount < npc.maxJumps && Math.random() > 0.7) {
+                                setTimeout(() => {
+                                    npc.dy = npc.jumpStrength;
+                                    npc.jumpCount++;
+                                }, 200);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function drawHP() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            if (player) {
+                ctx.fillText(`HP: ${player.hp}`, 20, 30);
+            }
+            if (npc) {
+                ctx.fillText(`HP: ${npc.hp}`, canvas.width - 80, 30);
+            }
+        }
+
+        function drawDamageIndicators() {
+            damageIndicators.forEach((indicator, index) => {
+                ctx.fillStyle = indicator.color || `rgba(255, 0, 0, ${indicator.opacity})`;
+                ctx.font = '16px Arial';
+                ctx.fillText(indicator.text, indicator.x, indicator.y);
+                indicator.y -= 1;
+                indicator.opacity -= 0.02;
+                if (indicator.opacity <= 0) {
+                    damageIndicators.splice(index, 1);
+                }
+            });
+        }
+
+        function drawTimer() {
+            const currentTime = performance.now();
+            const elapsedTime = (currentTime - gameStartTime) / 1000;
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Time: ${elapsedTime.toFixed(1)}s`, canvas.width / 2 - 50, 30);
+            return elapsedTime;
+        }
+
+        function drawScore() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Score: ${playerScore}`, 20, canvas.height - 70); // Bottom left corner under the platform
+        }
+
+        function handleTap(event) {
+            const tapX = event.touches[0].clientX;
+
+            if (tapX < canvas.width / 2) {
+                if (player && player.jumpCount < player.maxJumps) {
+                    player.dy = player.jumpStrength;
+                    player.onGround = false;
+                    player.jumpCount++;
+                }
+            } else {
+                if (player && player.canShoot) {
+                    projectiles.push({
+                        x: player.x + player.width,
+                        y: player.y + player.height / 2,
+                        width: 12,
+                        height: 12,
+                        dx: 1.9, // Adjusted projectile speed
+                        owner: 'player',
+                        image: projectileImage
+                    });
+                    player.canShoot = false;
+                    setTimeout(() => {
+                        if (player) {
+                            player.canShoot = true;
+                        }
+                    }, 600);
+                }
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.code === 'Space') {
+                if (player && player.jumpCount < player.maxJumps) {
+                    player.dy = player.jumpStrength;
+                    player.onGround = false;
+                    player.jumpCount++;
+                }
+            } else if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                if (player && player.canShoot) {
+                    projectiles.push({
+                        x: player.x + player.width,
+                        y: player.y + player.height / 2,
+                        width: 12,
+                        height: 12,
+                        dx: 1.9, // Adjusted projectile speed
+                        owner: 'player',
+                        image: projectileImage
+                    });
+                    player.canShoot = false;
+                    setTimeout(() => {
+                        if (player) {
+                            player.canShoot = true;
+                        }
+                    }, 600);
+                }
+            }
+        }
+
+        function spawnBox() {
+            console.log("Spawning box");
+            const types = ['purple', 'brown', 'red'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const colorMap = {
+                'purple': 'purple',
+                'brown': 'brown',
+                'red': 'red'
+            };
+            const box = {
+                x: canvas.width / 2 - 75,
+                y: 0,
+                width: 20,
+                height: 20,
+                color: colorMap[type],
+                dy: 0.4,// Adjusted box falling speed for more natural motion
+                hp: 3,
+                isFlashing: false,
+                flashTimer: 0,
+                type: type,
+            };
+            boxes.push(box);
+
+            const nextSpawnInterval = Math.floor(Math.random() * 8000) + 7000;
+            clearTimeout(spawnBoxTimeout);
+            spawnBoxTimeout = setTimeout(spawnBox, nextSpawnInterval);
+        }
+
+        function checkGameOver() {
+            if ((player && player.hp <= 0) || (npc && npc.hp <= 0)) {
+                const finalTime = drawTimer();
+                const finalScoreValue = Math.round((playerScore * 10) - finalTime); // Round the score to the nearest number
+                finalScore.textContent = `Final Score: ${finalScoreValue}`;
+                gameOverText.textContent = player && player.hp > 0 ? 'Victory' : 'Defeat';
+                gameOverUI.style.display = 'block';
+                clearTimeout(spawnBoxTimeout);
+                clearInterval(npcShootInterval);
+                cancelAnimationFrame(gameLoopInterval);
+                if (player && player.hp <= 0) {
+                    player = null;
+                }
+                if (npc && npc.hp <= 0) {
+                    npc = null;
+                }
+                submitHighScore(selectedPlayer, finalScoreValue);
+                updateHighScores();
+            }
+        }
+
+        function restartGame() {
+            cancelAnimationFrame(gameLoopInterval);
+            clearTimeout(spawnBoxTimeout);
+            clearInterval(npcShootInterval);
+            gameStartTime = performance.now(); // Restart the timer
+            initGame(selectedPlayer, selectedPlayer === 'drake' ? 'kendrick' : 'drake');
+            gameLoopInterval = requestAnimationFrame(gameLoop);
+        }
+
+        function triggerCameraShake() {
+            isCameraShaking = true;
+            cameraShakeDuration = 20;
+        }
+
+        function applyCameraShake() {
+            if (isCameraShaking) {
+                const shakeIntensity = 5;
+                const offsetX = (Math.random() - 0.5) * shakeIntensity;
+                const offsetY = (Math.random() - 0.5) * shakeIntensity;
+                canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+                cameraShakeDuration--;
+
+                if (cameraShakeDuration <= 0) {
+                    isCameraShaking = false;
+                    canvas.style.transform = 'translate(0, 0)';
+                }
+            }
+        }
+
+        function handleBoxDestruction(box, owner) {
+            console.log("Box destroyed:", box);
+            if (box.type === 'purple') {
+                const wall = {
+                    x: box.x,
+                    y: box.y,
+                    width: box.width / 2,
+                    height: box.height * 2,
+                    hp: 30,
+                    color: 'purple',
+                    isFlashing: false,
+                    flashTimer: 0,
+                };
+                walls.push(wall);
+            } else if (box.type === 'brown') {
+                const healAmount = getRandomHeal();
+                if (owner === 'player') {
+                    player.hp = Math.min(player.hp + healAmount, 222);
+                    damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `+${healAmount}`, opacity: 1, color: 'green' });
+                } else if (owner === 'npc') {
+                    npc.hp = Math.min(npc.hp + healAmount, 222);
+                    damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `+${healAmount}`, opacity: 1, color: 'green' });
+                }
+            } else if (box.type === 'red') {
+                const numProjectiles = 12;
+                const angleStep = (2 * Math.PI) / numProjectiles;
+                for (let i = 0; i < numProjectiles; i++) {
+                    const angle = i * angleStep;
+                    npcProjectiles.push({
+                        x: box.x + box.width / 2,
+                        y: box.y + box.height / 2,
+                        width: 12,
+                        height: 12,
+                        dx: 1.5 * Math.cos(angle), // Adjusted projectile speed
+                        dy: 1.5 * Math.sin(angle), // Adjusted projectile speed
+                        fromRedBox: true,
+                        image: redBoxProjectileImage
+                    });
+                }
+            }
+        }
+
+        function npcShoot() {
+            if (npc && npc.canShoot && Math.random() > 0.2) {
+                npcProjectiles.push({
+                    x: npc.x,
+                    y: npc.y + npc.height / 2,
+                    width: 12,
+                    height: 12,
+                    dx: -1.9, // Adjusted projectile speed
+                    owner: 'npc',
+                    image: projectileImage
+                });
+                npc.canShoot = false;
+                setTimeout(() => {
+                    if (npc) {
+                        npc.canShoot = true;
+                    }
+                }, 600);
+            }
+        }
+
+        function gameLoop(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawPlatforms();
+            if (player) drawCharacter(player);
+            if (npc) drawCharacter(npc);
+            drawProjectiles();
+            drawNpcProjectiles();
+            drawBoxes();
+            drawWalls();
+            updatePlayer(deltaTime);
+            updateNpc(deltaTime);
+            drawHP();
+            drawDamageIndicators();
+            if (!gameOverUI.style.display || gameOverUI.style.display === 'none') {
+                drawTimer();
+                drawScore();
+            }
+            checkGameOver();
+            applyCameraShake();
+
+            gameLoopInterval = requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('touchstart', handleTap);
+        window.addEventListener('keydown', handleKeyDown);
+
+        startScreen.style.display = 'block';
+    </script>
+</body>
+</html>
