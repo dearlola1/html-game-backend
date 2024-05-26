@@ -1,48 +1,42 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
-const dotenv = require('dotenv');
-
-dotenv.config();
+require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => {
-    console.log('Connected to MongoDB');
-}).catch(err => {
-    console.error('Could not connect to MongoDB...', err);
-});
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const highScoreSchema = new mongoose.Schema({
-    player: String,
-    score: Number
-});
+  player: String,
+  score: Number,
+}, { collection: 'highscores' });
 
 const HighScore = mongoose.model('HighScore', highScoreSchema);
 
 app.post('/highscores', async (req, res) => {
-    const { player, score } = req.body;
-    const highScore = new HighScore({ player, score });
+  try {
+    const highScore = new HighScore(req.body);
     await highScore.save();
     res.status(201).send(highScore);
+  } catch (error) {
+    res.status(400).send(error);
+  }
 });
 
 app.get('/highscores', async (req, res) => {
-    const highScores = await HighScore.find().sort({ score: -1 }).limit(10);
-    res.send(highScores);
+  try {
+    const highScores = await HighScore.find().sort({ score: -1 }).exec(); // Get all scores sorted by score in descending order
+    res.status(200).send(highScores);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });

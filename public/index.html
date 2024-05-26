@@ -24,7 +24,7 @@
             height: 932px; /* iPhone 15 viewport height */
         }
 
-        #gameOver, #startScreen, #highScores {
+        #gameOver, #startScreen, #nameInput {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -40,14 +40,19 @@
             display: none;
         }
 
-        #highScores {
-            display: none;
-            top: 10%;
-            left: 50%;
-            transform: translate(-50%, 0);
+        #gameOver .section {
+            margin: 10px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        #gameOver button, #startScreen button, #highScores button {
+        #gameOver .highScoreSection {
+            max-height: 200px; /* Adjust as needed */
+            overflow-y: auto;
+        }
+
+        #gameOver button, #startScreen button, #nameInput button {
             padding: 10px 20px;
             margin-top: 10px;
             font-size: 16px;
@@ -56,6 +61,16 @@
         .character-select {
             margin: 10px;
             cursor: pointer;
+        }
+
+        #nameInput {
+            display: none;
+        }
+
+        #highScoreList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
     </style>
 </head>
@@ -68,15 +83,21 @@
             <button class="character-select" onclick="selectCharacter('kendrick')">Kendrick</button>
         </div>
     </div>
-    <div id="gameOver">
-        <h1 id="gameOverText">Game Over</h1>
-        <p id="finalScore">Final Score: 0</p>
-        <button onclick="restartGame()">Restart</button>
+    <div id="nameInput">
+        <h1>Enter Your Name</h1>
+        <input type="text" id="playerName" placeholder="Your name">
+        <button onclick="startGame()">Start Game</button>
     </div>
-    <div id="highScores">
-        <h2>High Scores</h2>
-        <ul id="highScoreList"></ul>
-        <button onclick="closeHighScores()">Close</button>
+    <div id="gameOver">
+        <div class="section">
+            <h1 id="gameOverText">Game Over</h1>
+            <p id="finalScore">Final Score: 0</p>
+        </div>
+        <div class="section highScoreSection">
+            <h2>High Scores</h2>
+            <ul id="highScoreList"></ul>
+        </div>
+        <button onclick="restartGame()">Restart</button>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -85,8 +106,9 @@
         const gameOverUI = document.getElementById('gameOver');
         const gameOverText = document.getElementById('gameOverText');
         const finalScore = document.getElementById('finalScore');
-        const highScoresUI = document.getElementById('highScores');
         const highScoreList = document.getElementById('highScoreList');
+        const nameInput = document.getElementById('nameInput');
+        const playerNameInput = document.getElementById('playerName');
 
         const drakeImage = new Image();
         drakeImage.src = 'https://i.imgur.com/oNnc2WL.png'; // Replace with your Drake PNG URL
@@ -127,6 +149,7 @@
         let lastTime = 0;
         let gameStartTime = 0;
         let playerScore = 0;
+        let playerName = '';
 
         async function submitHighScore(playerName, score) {
             try {
@@ -142,6 +165,7 @@
                 }
                 const data = await response.json();
                 console.log('High score submitted:', data);
+                return data;
             } catch (error) {
                 console.error('Error submitting high score:', error);
             }
@@ -154,6 +178,7 @@
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
+                console.log('Fetched high scores:', data); // Add logging
                 return data;
             } catch (error) {
                 console.error('Error fetching high scores:', error);
@@ -168,18 +193,23 @@
                 li.textContent = `${score.player}: ${score.score}`;
                 highScoreList.appendChild(li);
             });
-            highScoresUI.style.display = 'block';
-        }
-
-        function closeHighScores() {
-            highScoresUI.style.display = 'none';
         }
 
         function selectCharacter(character) {
             selectedPlayer = character;
-            const npcCharacter = character === 'drake' ? 'kendrick' : 'drake';
-            initGame(character, npcCharacter);
             startScreen.style.display = 'none';
+            nameInput.style.display = 'block';
+        }
+
+        function startGame() {
+            playerName = playerNameInput.value.trim();
+            if (!playerName) {
+                alert("Please enter your name");
+                return;
+            }
+            nameInput.style.display = 'none';
+            const npcCharacter = selectedPlayer === 'drake' ? 'kendrick' : 'drake';
+            initGame(selectedPlayer, npcCharacter);
             gameStartTime = performance.now();
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
@@ -671,7 +701,11 @@
                 const finalScoreValue = Math.round((playerScore * 10) - finalTime); // Round the score to the nearest number
                 finalScore.textContent = `Final Score: ${finalScoreValue}`;
                 gameOverText.textContent = player && player.hp > 0 ? 'Victory' : 'Defeat';
-                gameOverUI.style.display = 'block';
+                submitHighScore(playerName, finalScoreValue).then(() => {
+                    updateHighScores().then(() => {
+                        gameOverUI.style.display = 'block';
+                    });
+                });
                 clearTimeout(spawnBoxTimeout);
                 clearInterval(npcShootInterval);
                 cancelAnimationFrame(gameLoopInterval);
@@ -681,8 +715,6 @@
                 if (npc && npc.hp <= 0) {
                     npc = null;
                 }
-                submitHighScore(selectedPlayer, finalScoreValue);
-                updateHighScores();
             }
         }
 
