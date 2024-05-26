@@ -1,7 +1,7 @@
 {
   "name": "html-game-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "222",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
