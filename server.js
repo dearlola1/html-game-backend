@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const cors = require('cors');
+const cors = require('cors'); // Ensure cors is required here
 require('dotenv').config();
 
 const app = express();
@@ -32,7 +32,7 @@ app.post('/highscores', async (req, res) => {
 
 app.get('/highscores', async (req, res) => {
   try {
-    const highScores = await HighScore.find().sort({ score: -1 }).exec(); // Get all scores sorted by score in descending order
+    const highScores = await HighScore.find().sort({ score: -1 }).exec();
     res.status(200).send(highScores);
   } catch (error) {
     res.status(500).send(error);
