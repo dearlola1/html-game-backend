@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Simple HTML Game</title>
     <style>
         body {
@@ -15,6 +15,7 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
+            touch-action: none; /* Prevent default touch behaviors */
         }
 
         canvas {
@@ -22,7 +23,6 @@
             display: block;
             width: 430px;  /* iPhone 15 viewport width */
             height: 932px; /* iPhone 15 viewport height */
-            touch-action: none; /* Prevent default touch behaviors like scrolling and zooming */
         }
 
         #gameOver, #startScreen, #nameInput {
@@ -315,8 +315,8 @@
         function drawProjectiles() {
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const projectile = projectiles[i];
-                projectile.x += projectile.dx * (deltaTime / 16.67); // Use deltaTime for consistent speed
-                projectile.y += projectile.dy * (deltaTime / 16.67) || 0;
+                projectile.x += projectile.dx;
+                projectile.y += projectile.dy || 0;
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -386,8 +386,8 @@
         function drawNpcProjectiles() {
             for (let i = npcProjectiles.length - 1; i >= 0; i--) {
                 const projectile = npcProjectiles[i];
-                projectile.x += projectile.dx * (deltaTime / 16.67); // Use deltaTime for consistent speed
-                projectile.y += projectile.dy * (deltaTime / 16.67) || 0;
+                projectile.x += projectile.dx;
+                projectile.y += projectile.dy || 0;
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -469,7 +469,7 @@
         function drawBoxes() {
             for (let i = boxes.length - 1; i >= 0; i--) {
                 const box = boxes[i];
-                box.y += box.dy * (deltaTime / 16.67); // Use deltaTime for consistent speed
+                box.y += box.dy;
                 box.x += Math.sin(box.y / 20) * 1;
 
                 if (box.isFlashing) {
@@ -668,6 +668,26 @@
             }
         }
 
+        function preventDoubleTapZoom(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }
+
+        function preventScroll(event) {
+            event.preventDefault();
+        }
+
+        function preventZoom(event) {
+            if (event.ctrlKey || event.metaKey) {
+                event.preventDefault();
+            }
+        }
+
+        function preventHighlight(event) {
+            event.preventDefault();
+        }
+
         function spawnBox() {
             console.log("Spawning box");
             const types = ['purple', 'brown', 'red'];
@@ -839,6 +859,11 @@
 
         canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
+
+        window.addEventListener('touchstart', preventDoubleTapZoom, { passive: false });
+        window.addEventListener('touchmove', preventScroll, { passive: false });
+        window.addEventListener('wheel', preventZoom, { passive: false });
+        window.addEventListener('contextmenu', preventHighlight, { passive: false });
 
         startScreen.style.display = 'block';
     </script>
