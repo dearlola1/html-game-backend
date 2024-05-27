@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Simple HTML Game</title>
     <style>
         body {
@@ -15,12 +15,14 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            touch-action: none; /* Disable default touch actions */
+            touch-action: none; /* Prevent default touch behaviors */
         }
 
         canvas {
             background-color: #87CEEB;
             display: block;
+            width: 430px;  /* iPhone 15 viewport width */
+            height: 932px; /* iPhone 15 viewport height */
         }
 
         #gameOver, #startScreen, #nameInput {
@@ -137,14 +139,8 @@
         redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png'; // Replace with your Red Box PNG URL
         redBoxImage.onerror = () => console.log('Error loading Red Box image');
 
-        // Set canvas dimensions
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
+        canvas.width = 430;
+        canvas.height = 932;
 
         let player, npc, projectiles, npcProjectiles, boxes, walls, damageIndicators;
         let isCameraShaking = false;
@@ -651,7 +647,7 @@
                     player.onGround = false;
                     player.jumpCount++;
                 }
-            } else if (event.code === 'KeyL') { // Changed to 'L' instead of 'Shift'
+            } else if (event.code === 'KeyL') {
                 if (player && player.canShoot) {
                     projectiles.push({
                         x: player.x + player.width,
@@ -670,6 +666,26 @@
                     }, 600);
                 }
             }
+        }
+
+        function preventDoubleTapZoom(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }
+
+        function preventScroll(event) {
+            event.preventDefault();
+        }
+
+        function preventZoom(event) {
+            if (event.ctrlKey || event.metaKey) {
+                event.preventDefault();
+            }
+        }
+
+        function preventHighlight(event) {
+            event.preventDefault();
         }
 
         function spawnBox() {
@@ -841,8 +857,13 @@
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
 
-        canvas.addEventListener('touchstart', handleTap, { passive: false });
+        canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
+
+        window.addEventListener('touchstart', preventDoubleTapZoom, { passive: false });
+        window.addEventListener('touchmove', preventScroll, { passive: false });
+        window.addEventListener('wheel', preventZoom, { passive: false });
+        window.addEventListener('contextmenu', preventHighlight, { passive: false });
 
         startScreen.style.display = 'block';
     </script>
