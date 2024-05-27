@@ -15,7 +15,7 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            touch-action: none; /* Prevent default touch behaviors */
+            touch-action: none; /* Prevent default touch actions */
         }
 
         canvas {
@@ -626,7 +626,7 @@
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.9, // Adjusted projectile speed
+                        dx: 12, // Adjusted projectile speed
                         owner: 'player',
                         image: projectileImage
                     });
@@ -647,14 +647,14 @@
                     player.onGround = false;
                     player.jumpCount++;
                 }
-            } else if (event.code === 'KeyL') {
+            } else if (event.code === 'KeyL') { // Changed to 'KeyL' instead of 'ShiftLeft' or 'ShiftRight'
                 if (player && player.canShoot) {
                     projectiles.push({
                         x: player.x + player.width,
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.9, // Adjusted projectile speed
+                        dx: 12, // Adjusted projectile speed
                         owner: 'player',
                         image: projectileImage
                     });
@@ -666,26 +666,6 @@
                     }, 600);
                 }
             }
-        }
-
-        function preventDoubleTapZoom(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }
-
-        function preventScroll(event) {
-            event.preventDefault();
-        }
-
-        function preventZoom(event) {
-            if (event.ctrlKey || event.metaKey) {
-                event.preventDefault();
-            }
-        }
-
-        function preventHighlight(event) {
-            event.preventDefault();
         }
 
         function spawnBox() {
@@ -703,7 +683,7 @@
                 width: 20,
                 height: 20,
                 color: colorMap[type],
-                dy: 0.4,// Adjusted box falling speed for more natural motion
+                dy: 4.8, // Adjusted box falling speed
                 hp: 3,
                 isFlashing: false,
                 flashTimer: 0,
@@ -801,8 +781,8 @@
                         y: box.y + box.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.5 * Math.cos(angle), // Adjusted projectile speed
-                        dy: 1.5 * Math.sin(angle), // Adjusted projectile speed
+                        dx: 9 * Math.cos(angle), // Adjusted projectile speed
+                        dy: 9 * Math.sin(angle), // Adjusted projectile speed
                         fromRedBox: true,
                         image: redBoxProjectileImage
                     });
@@ -817,7 +797,7 @@
                     y: npc.y + npc.height / 2,
                     width: 12,
                     height: 12,
-                    dx: -1.9, // Adjusted projectile speed
+                    dx: -12, // Adjusted projectile speed
                     owner: 'npc',
                     image: projectileImage
                 });
@@ -859,11 +839,6 @@
 
         canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
-
-        window.addEventListener('touchstart', preventDoubleTapZoom, { passive: false });
-        window.addEventListener('touchmove', preventScroll, { passive: false });
-        window.addEventListener('wheel', preventZoom, { passive: false });
-        window.addEventListener('contextmenu', preventHighlight, { passive: false });
 
         startScreen.style.display = 'block';
     </script>
