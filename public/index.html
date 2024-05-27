@@ -15,14 +15,13 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            touch-action: none; /* Disable zoom and scroll */
         }
 
         canvas {
             background-color: #87CEEB;
             display: block;
-            width: 430px;  /* iPhone 15 viewport width */
-            height: 932px; /* iPhone 15 viewport height */
+            max-width: 100%;
+            max-height: 100%;
         }
 
         #gameOver, #startScreen, #nameInput {
@@ -112,32 +111,25 @@
         const playerNameInput = document.getElementById('playerName');
 
         const drakeImage = new Image();
-        drakeImage.src = 'https://i.imgur.com/oNnc2WL.png'; // Replace with your Drake PNG URL
-        drakeImage.onerror = () => console.log('Error loading Drake image');
+        drakeImage.src = 'https://i.imgur.com/oNnc2WL.png';
 
         const kendrickImage = new Image();
-        kendrickImage.src = 'https://i.imgur.com/8DLtz2J.png'; // Replace with your Kendrick PNG URL
-        kendrickImage.onerror = () => console.log('Error loading Kendrick image');
+        kendrickImage.src = 'https://i.imgur.com/8DLtz2J.png';
 
         const projectileImage = new Image();
-        projectileImage.src = 'https://i.imgur.com/F24I2a9.png'; // Replace with your projectile PNG URL
-        projectileImage.onerror = () => console.log('Error loading projectile image');
+        projectileImage.src = 'https://i.imgur.com/F24I2a9.png';
 
         const redBoxProjectileImage = new Image();
-        redBoxProjectileImage.src = 'https://i.imgur.com/W6Ebd9d.png'; // Replace with your red box projectile PNG URL
-        redBoxProjectileImage.onerror = () => console.log('Error loading red box projectile image');
+        redBoxProjectileImage.src = 'https://i.imgur.com/W6Ebd9d.png';
 
         const purpleBoxImage = new Image();
-        purpleBoxImage.src = 'https://example.com/path/to/purple-box.png'; // Replace with your Purple Box PNG URL
-        purpleBoxImage.onerror = () => console.log('Error loading Purple Box image');
+        purpleBoxImage.src = 'https://example.com/path/to/purple-box.png';
 
         const brownBoxImage = new Image();
-        brownBoxImage.src = 'https://i.imgur.com/TJ9oMkH.png'; // Replace with your Brown Box PNG URL
-        brownBoxImage.onerror = () => console.log('Error loading Brown Box image');
+        brownBoxImage.src = 'https://i.imgur.com/TJ9oMkH.png';
 
         const redBoxImage = new Image();
-        redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png'; // Replace with your Red Box PNG URL
-        redBoxImage.onerror = () => console.log('Error loading Red Box image');
+        redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png';
 
         canvas.width = 430;
         canvas.height = 932;
@@ -229,7 +221,7 @@
                 image: playerImage,
                 dy: 0,
                 gravity: 0.4,
-                jumpStrength: -9, // Adjusted jump strength for more natural movement
+                jumpStrength: -9,
                 onGround: true,
                 hp: 222,
                 canShoot: true,
@@ -247,7 +239,7 @@
                 image: npcImage,
                 dy: 0,
                 gravity: 0.4,
-                jumpStrength: -9, // Adjusted jump strength for more natural movement
+                jumpStrength: -9,
                 onGround: true,
                 hp: 222,
                 canShoot: true,
@@ -262,7 +254,7 @@
             boxes = [];
             walls = [];
             damageIndicators = [];
-            playerScore = 0;  // Reset player score
+            playerScore = 0;
             gameOverUI.style.display = 'none';
 
             clearInterval(npcShootInterval);
@@ -333,7 +325,7 @@
                     const damage = getRandomDamage();
                     npc.hp -= damage;
                     npc.isFlashing = true;
-                    playerScore += damage; // Increase score when hitting the NPC
+                    playerScore += damage;
                     damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `-${damage}`, opacity: 1 });
                     projectiles.splice(i, 1);
                 }
@@ -347,7 +339,7 @@
                         const damage = getRandomDamage();
                         box.hp -= damage;
                         box.isFlashing = true;
-                        playerScore += damage; // Increase score when hitting a box
+                        playerScore += damage;
                         damageIndicators.push({ x: box.x + box.width / 2, y: box.y - 10, text: `-${damage}`, opacity: 1 });
                         if (box.hp <= 0) {
                             handleBoxDestruction(box, projectile.owner);
@@ -367,7 +359,7 @@
                         const damage = getRandomDamage();
                         wall.hp -= damage;
                         wall.isFlashing = true;
-                        playerScore += damage; // Increase score when hitting a wall
+                        playerScore += damage;
                         damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
                         if (wall.hp <= 0) {
                             walls.splice(j, 1);
@@ -403,7 +395,7 @@
                     const damage = getRandomDamage();
                     player.hp -= damage;
                     player.isFlashing = true;
-                    playerScore -= damage; // Decrease score when the player is hit
+                    playerScore -= damage;
                     triggerCameraShake();
                     damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
                     npcProjectiles.splice(i, 1);
@@ -626,7 +618,7 @@
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.9, // Adjusted projectile speed
+                        dx: 1.9,
                         owner: 'player',
                         image: projectileImage
                     });
@@ -654,7 +646,7 @@
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.9, // Adjusted projectile speed
+                        dx: 1.9,
                         owner: 'player',
                         image: projectileImage
                     });
@@ -683,7 +675,7 @@
                 width: 20,
                 height: 20,
                 color: colorMap[type],
-                dy: 0.4,// Adjusted box falling speed for more natural motion
+                dy: 0.4,
                 hp: 3,
                 isFlashing: false,
                 flashTimer: 0,
@@ -723,7 +715,7 @@
             cancelAnimationFrame(gameLoopInterval);
             clearTimeout(spawnBoxTimeout);
             clearInterval(npcShootInterval);
-            gameStartTime = performance.now(); // Restart the timer
+            gameStartTime = performance.now();
             initGame(selectedPlayer, selectedPlayer === 'drake' ? 'kendrick' : 'drake');
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
@@ -781,8 +773,8 @@
                         y: box.y + box.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.5 * Math.cos(angle), // Adjusted projectile speed
-                        dy: 1.5 * Math.sin(angle), // Adjusted projectile speed
+                        dx: 1.5 * Math.cos(angle),
+                        dy: 1.5 * Math.sin(angle),
                         fromRedBox: true,
                         image: redBoxProjectileImage
                     });
@@ -797,7 +789,7 @@
                     y: npc.y + npc.height / 2,
                     width: 12,
                     height: 12,
-                    dx: -1.9, // Adjusted projectile speed
+                    dx: -1.9,
                     owner: 'npc',
                     image: projectileImage
                 });
@@ -837,8 +829,15 @@
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
 
-        canvas.addEventListener('touchstart', handleTap, { passive: false });
+        canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
+
+        // Prevent default touch events to avoid zooming and highlighting
+        document.addEventListener('touchmove', event => event.preventDefault(), { passive: false });
+        document.addEventListener('gesturestart', event => event.preventDefault());
+        document.addEventListener('gesturechange', event => event.preventDefault());
+        document.addEventListener('gestureend', event => event.preventDefault());
+
         startScreen.style.display = 'block';
     </script>
 </body>
