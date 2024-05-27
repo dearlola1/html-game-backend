@@ -15,7 +15,7 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            touch-action: none; /* Prevents default touch actions like scrolling */
+            touch-action: none; /* Disable zoom and scroll */
         }
 
         canvas {
@@ -528,8 +528,8 @@
 
         function updatePlayer(deltaTime) {
             if (player) {
-                player.dy += player.gravity;
-                player.y += player.dy;
+                player.dy += player.gravity * deltaTime / 16.67;
+                player.y += player.dy * deltaTime / 16.67;
 
                 if (player.y + player.height > canvas.height - 100) {
                     player.y = canvas.height - 100 - player.height;
@@ -542,8 +542,8 @@
 
         function updateNpc(deltaTime) {
             if (npc) {
-                npc.dy += npc.gravity;
-                npc.y += npc.dy;
+                npc.dy += npc.gravity * deltaTime / 16.67;
+                npc.y += npc.dy * deltaTime / 16.67;
 
                 if (npc.y + npc.height > canvas.height - 100) {
                     npc.y = canvas.height - 100 - npc.height;
@@ -837,25 +837,8 @@
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
 
-        canvas.addEventListener('touchstart', handleTap);
+        canvas.addEventListener('touchstart', handleTap, { passive: false });
         window.addEventListener('keydown', handleKeyDown);
-
-        window.addEventListener('touchmove', function (event) {
-            event.preventDefault();
-        }, { passive: false });
-
-        window.addEventListener('touchstart', function (event) {
-            event.preventDefault();
-        }, { passive: false });
-
-        window.addEventListener('gesturestart', function (event) {
-            event.preventDefault();
-        });
-
-        window.addEventListener('gesturechange', function (event) {
-            event.preventDefault();
-        });
-
         startScreen.style.display = 'block';
     </script>
 </body>
