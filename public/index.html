@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple HTML Game</title>
     <style>
         body {
@@ -15,7 +15,6 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            touch-action: none; /* Prevent default touch actions */
         }
 
         canvas {
@@ -23,6 +22,7 @@
             display: block;
             width: 430px;  /* iPhone 15 viewport width */
             height: 932px; /* iPhone 15 viewport height */
+            touch-action: none; /* Prevent default touch behaviors like scrolling and zooming */
         }
 
         #gameOver, #startScreen, #nameInput {
@@ -315,8 +315,8 @@
         function drawProjectiles() {
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const projectile = projectiles[i];
-                projectile.x += projectile.dx;
-                projectile.y += projectile.dy || 0;
+                projectile.x += projectile.dx * (deltaTime / 16.67); // Use deltaTime for consistent speed
+                projectile.y += projectile.dy * (deltaTime / 16.67) || 0;
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -386,8 +386,8 @@
         function drawNpcProjectiles() {
             for (let i = npcProjectiles.length - 1; i >= 0; i--) {
                 const projectile = npcProjectiles[i];
-                projectile.x += projectile.dx;
-                projectile.y += projectile.dy || 0;
+                projectile.x += projectile.dx * (deltaTime / 16.67); // Use deltaTime for consistent speed
+                projectile.y += projectile.dy * (deltaTime / 16.67) || 0;
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -469,7 +469,7 @@
         function drawBoxes() {
             for (let i = boxes.length - 1; i >= 0; i--) {
                 const box = boxes[i];
-                box.y += box.dy;
+                box.y += box.dy * (deltaTime / 16.67); // Use deltaTime for consistent speed
                 box.x += Math.sin(box.y / 20) * 1;
 
                 if (box.isFlashing) {
@@ -626,7 +626,7 @@
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 12, // Adjusted projectile speed
+                        dx: 1.9, // Adjusted projectile speed
                         owner: 'player',
                         image: projectileImage
                     });
@@ -647,14 +647,14 @@
                     player.onGround = false;
                     player.jumpCount++;
                 }
-            } else if (event.code === 'KeyL') { // Changed to 'KeyL' instead of 'ShiftLeft' or 'ShiftRight'
+            } else if (event.code === 'KeyL') {
                 if (player && player.canShoot) {
                     projectiles.push({
                         x: player.x + player.width,
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 12, // Adjusted projectile speed
+                        dx: 1.9, // Adjusted projectile speed
                         owner: 'player',
                         image: projectileImage
                     });
@@ -683,7 +683,7 @@
                 width: 20,
                 height: 20,
                 color: colorMap[type],
-                dy: 4.8, // Adjusted box falling speed
+                dy: 0.4,// Adjusted box falling speed for more natural motion
                 hp: 3,
                 isFlashing: false,
                 flashTimer: 0,
@@ -781,8 +781,8 @@
                         y: box.y + box.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 9 * Math.cos(angle), // Adjusted projectile speed
-                        dy: 9 * Math.sin(angle), // Adjusted projectile speed
+                        dx: 1.5 * Math.cos(angle), // Adjusted projectile speed
+                        dy: 1.5 * Math.sin(angle), // Adjusted projectile speed
                         fromRedBox: true,
                         image: redBoxProjectileImage
                     });
@@ -797,7 +797,7 @@
                     y: npc.y + npc.height / 2,
                     width: 12,
                     height: 12,
-                    dx: -12, // Adjusted projectile speed
+                    dx: -1.9, // Adjusted projectile speed
                     owner: 'npc',
                     image: projectileImage
                 });
