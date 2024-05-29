@@ -467,10 +467,11 @@
         }
 
         function drawBoxes(scaleFactor) {
+            const oscillationAmplitude = canvas.width / 6; // Adjust this value to prevent touching platforms
             for (let i = boxes.length - 1; i >= 0; i--) {
                 const box = boxes[i];
                 box.y += box.dy * scaleFactor * 1.5; // Adjusted speed by 1.5x
-                box.x += Math.sin(box.y / 20) * 1; // This movement doesn't need scaling
+                box.x = (canvas.width / 2) - (box.width / 2) + Math.sin(box.y / 20) * oscillationAmplitude; // Centered oscillation
 
                 if (box.isFlashing) {
                     ctx.globalAlpha = box.flashTimer % 2 === 0 ? 1 : 0.5;
@@ -861,4 +862,3 @@
     </script>
 </body>
 </html>
-
