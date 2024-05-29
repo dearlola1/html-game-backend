@@ -312,11 +312,11 @@
             ctx.fillRect(canvas.width - platformWidth, platformY, platformWidth, platformHeight);
         }
 
-        function drawProjectiles() {
+        function drawProjectiles(scaleFactor) {
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const projectile = projectiles[i];
-                projectile.x += projectile.dx;
-                projectile.y += projectile.dy || 0;
+                projectile.x += projectile.dx * scaleFactor;
+                projectile.y += projectile.dy ? projectile.dy * scaleFactor : 0;
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -383,11 +383,11 @@
             }
         }
 
-        function drawNpcProjectiles() {
+        function drawNpcProjectiles(scaleFactor) {
             for (let i = npcProjectiles.length - 1; i >= 0; i--) {
                 const projectile = npcProjectiles[i];
-                projectile.x += projectile.dx;
-                projectile.y += projectile.dy || 0;
+                projectile.x += projectile.dx * scaleFactor;
+                projectile.y += projectile.dy ? projectile.dy * scaleFactor : 0;
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -466,11 +466,11 @@
             }
         }
 
-        function drawBoxes() {
+        function drawBoxes(scaleFactor) {
             for (let i = boxes.length - 1; i >= 0; i--) {
                 const box = boxes[i];
-                box.y += box.dy;
-                box.x += Math.sin(box.y / 20) * 1;
+                box.y += box.dy * scaleFactor;
+                box.x += Math.sin(box.y / 20) * 1 * scaleFactor;
 
                 if (box.isFlashing) {
                     ctx.globalAlpha = box.flashTimer % 2 === 0 ? 1 : 0.5;
@@ -504,7 +504,7 @@
             }
         }
 
-        function drawWalls() {
+        function drawWalls(scaleFactor) {
             for (let i = walls.length - 1; i >= 0; i--) {
                 const wall = walls[i];
                 if (wall.isFlashing) {
@@ -528,8 +528,9 @@
 
         function updatePlayer(deltaTime) {
             if (player) {
-                player.dy += player.gravity * deltaTime / 16.67;
-                player.y += player.dy * deltaTime / 16.67;
+                const scaleFactor = deltaTime / 16.67;
+                player.dy += player.gravity * scaleFactor;
+                player.y += player.dy * scaleFactor;
 
                 if (player.y + player.height > canvas.height - 100) {
                     player.y = canvas.height - 100 - player.height;
@@ -542,8 +543,9 @@
 
         function updateNpc(deltaTime) {
             if (npc) {
-                npc.dy += npc.gravity * deltaTime / 16.67;
-                npc.y += npc.dy * deltaTime / 16.67;
+                const scaleFactor = deltaTime / 16.67;
+                npc.dy += npc.gravity * scaleFactor;
+                npc.y += npc.dy * scaleFactor;
 
                 if (npc.y + npc.height > canvas.height - 100) {
                     npc.y = canvas.height - 100 - npc.height;
@@ -696,7 +698,7 @@
                 width: 20,
                 height: 20,
                 color: colorMap[type],
-                dy: 0.4,// Adjusted box falling speed for more natural motion
+                dy: 0.4, // Adjusted box falling speed for more natural motion
                 hp: 3,
                 isFlashing: false,
                 flashTimer: 0,
@@ -827,15 +829,17 @@
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
+            const scaleFactor = deltaTime / 16.67; // 16.67ms is the time per frame at 60 FPS
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             drawPlatforms();
             if (player) drawCharacter(player);
             if (npc) drawCharacter(npc);
-            drawProjectiles();
-            drawNpcProjectiles();
-            drawBoxes();
-            drawWalls();
+            drawProjectiles(scaleFactor);
+            drawNpcProjectiles(scaleFactor);
+            drawBoxes(scaleFactor);
+            drawWalls(scaleFactor);
             updatePlayer(deltaTime);
             updateNpc(deltaTime);
             drawHP();
