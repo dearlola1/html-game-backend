@@ -215,8 +215,22 @@
             nameInput.style.display = 'none';
             const npcCharacter = selectedPlayer === 'drake' ? 'kendrick' : 'drake';
             initGame(selectedPlayer, npcCharacter);
+            requestFullscreen(); // Request fullscreen when the game starts
             gameStartTime = performance.now();
             gameLoopInterval = requestAnimationFrame(gameLoop);
+        }
+
+        function requestFullscreen() {
+            const element = document.documentElement;
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) { // Firefox
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                element.msRequestFullscreen();
+            }
         }
 
         function initGame(playerCharacter, npcCharacter) {
