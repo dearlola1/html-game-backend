@@ -15,6 +15,10 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
+            -webkit-touch-callout: none; /* Disable callout, tap highlight */
+            -webkit-user-select: none;   /* Disable text selection */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling */
+            touch-action: none; /* Disable touch actions like zoom and scroll */
         }
 
         canvas {
@@ -467,7 +471,7 @@
         }
 
         function drawBoxes(scaleFactor) {
-            const oscillationAmplitude = canvas.width / 6; // Adjust this value to prevent touching platforms
+            const oscillationAmplitude = canvas.width / 10; // Adjust this value to prevent touching platforms
             for (let i = boxes.length - 1; i >= 0; i--) {
                 const box = boxes[i];
                 box.y += box.dy * scaleFactor * 1.5; // Adjusted speed by 1.5x
@@ -862,3 +866,4 @@
     </script>
 </body>
 </html>
+
