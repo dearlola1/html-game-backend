@@ -315,8 +315,8 @@
         function drawProjectiles(scaleFactor) {
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const projectile = projectiles[i];
-                projectile.x += projectile.dx * scaleFactor;
-                projectile.y += projectile.dy ? projectile.dy * scaleFactor : 0;
+                projectile.x += projectile.dx * scaleFactor * 1.5; // Adjusted speed by 1.5x
+                projectile.y += projectile.dy ? projectile.dy * scaleFactor * 1.5 : 0; // Adjusted speed by 1.5x
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -386,8 +386,8 @@
         function drawNpcProjectiles(scaleFactor) {
             for (let i = npcProjectiles.length - 1; i >= 0; i--) {
                 const projectile = npcProjectiles[i];
-                projectile.x += projectile.dx * scaleFactor;
-                projectile.y += projectile.dy ? projectile.dy * scaleFactor : 0;
+                projectile.x += projectile.dx * scaleFactor * 1.5; // Adjusted speed by 1.5x
+                projectile.y += projectile.dy ? projectile.dy * scaleFactor * 1.5 : 0; // Adjusted speed by 1.5x
 
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
@@ -469,8 +469,8 @@
         function drawBoxes(scaleFactor) {
             for (let i = boxes.length - 1; i >= 0; i--) {
                 const box = boxes[i];
-                box.y += box.dy * scaleFactor;
-                box.x += Math.sin(box.y / 20) * 1 * scaleFactor;
+                box.y += box.dy * scaleFactor * 1.5; // Adjusted speed by 1.5x
+                box.x += Math.sin(box.y / 20) * 1; // This movement doesn't need scaling
 
                 if (box.isFlashing) {
                     ctx.globalAlpha = box.flashTimer % 2 === 0 ? 1 : 0.5;
@@ -504,7 +504,7 @@
             }
         }
 
-        function drawWalls(scaleFactor) {
+        function drawWalls() {
             for (let i = walls.length - 1; i >= 0; i--) {
                 const wall = walls[i];
                 if (wall.isFlashing) {
@@ -641,7 +641,7 @@
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.9, // Adjusted projectile speed
+                        dx: 1.9 * 1.5, // Adjusted projectile speed
                         owner: 'player',
                         image: projectileImage
                     });
@@ -669,7 +669,7 @@
                         y: player.y + player.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.9, // Adjusted projectile speed
+                        dx: 1.9 * 1.5, // Adjusted projectile speed
                         owner: 'player',
                         image: projectileImage
                     });
@@ -698,7 +698,7 @@
                 width: 20,
                 height: 20,
                 color: colorMap[type],
-                dy: 0.4, // Adjusted box falling speed for more natural motion
+                dy: 0.4 * 1.5, // Adjusted box falling speed for more natural motion
                 hp: 3,
                 isFlashing: false,
                 flashTimer: 0,
@@ -796,8 +796,8 @@
                         y: box.y + box.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.5 * Math.cos(angle), // Adjusted projectile speed
-                        dy: 1.5 * Math.sin(angle), // Adjusted projectile speed
+                        dx: 1.5 * Math.cos(angle) * 1.5, // Adjusted projectile speed
+                        dy: 1.5 * Math.sin(angle) * 1.5, // Adjusted projectile speed
                         fromRedBox: true,
                         image: redBoxProjectileImage
                     });
@@ -812,7 +812,7 @@
                     y: npc.y + npc.height / 2,
                     width: 12,
                     height: 12,
-                    dx: -1.9, // Adjusted projectile speed
+                    dx: -1.9 * 1.5, // Adjusted projectile speed
                     owner: 'npc',
                     image: projectileImage
                 });
@@ -839,7 +839,7 @@
             drawProjectiles(scaleFactor);
             drawNpcProjectiles(scaleFactor);
             drawBoxes(scaleFactor);
-            drawWalls(scaleFactor);
+            drawWalls();
             updatePlayer(deltaTime);
             updateNpc(deltaTime);
             drawHP();
@@ -861,3 +861,4 @@
     </script>
 </body>
 </html>
+
