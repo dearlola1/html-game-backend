@@ -216,7 +216,12 @@
             const npcCharacter = selectedPlayer === 'drake' ? 'kendrick' : 'drake';
             initGame(selectedPlayer, npcCharacter);
             gameStartTime = performance.now();
+            resetZoom(); // Reset zoom level after entering name
             gameLoopInterval = requestAnimationFrame(gameLoop);
+        }
+
+        function resetZoom() {
+            document.documentElement.style.zoom = 1;
         }
 
         function initGame(playerCharacter, npcCharacter) {
@@ -866,4 +871,3 @@
     </script>
 </body>
 </html>
-
