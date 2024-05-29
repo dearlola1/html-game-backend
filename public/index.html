@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Simple HTML Game</title>
     <style>
         body {
@@ -216,12 +216,7 @@
             const npcCharacter = selectedPlayer === 'drake' ? 'kendrick' : 'drake';
             initGame(selectedPlayer, npcCharacter);
             gameStartTime = performance.now();
-            resetZoom(); // Reset zoom level after entering name
             gameLoopInterval = requestAnimationFrame(gameLoop);
-        }
-
-        function resetZoom() {
-            document.documentElement.style.zoom = 1;
         }
 
         function initGame(playerCharacter, npcCharacter) {
