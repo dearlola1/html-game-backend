@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple HTML Game</title>
     <style>
         body {
@@ -15,11 +15,11 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            touch-action: none; /* Prevent default touch behaviors */
         }
 
         canvas {
-            background-color: #87CEEB;
+            background-image: url('https://i.imgur.com/nFevFKm.png');
+            background-size: cover;
             display: block;
             width: 430px;  /* iPhone 15 viewport width */
             height: 932px; /* iPhone 15 viewport height */
@@ -572,20 +572,27 @@
         }
 
         function drawHP() {
-            ctx.fillStyle = 'black';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
             if (player) {
-                ctx.fillText(`HP: ${player.hp}`, 20, 30);
+                ctx.strokeText(`HP: ${player.hp}`, 20, canvas.height - 50);
+                ctx.fillText(`HP: ${player.hp}`, 20, canvas.height - 50);
             }
             if (npc) {
-                ctx.fillText(`HP: ${npc.hp}`, canvas.width - 80, 30);
+                ctx.strokeText(`HP: ${npc.hp}`, canvas.width - 80, canvas.height - 50);
+                ctx.fillText(`HP: ${npc.hp}`, canvas.width - 80, canvas.height - 50);
             }
         }
 
         function drawDamageIndicators() {
             damageIndicators.forEach((indicator, index) => {
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
                 ctx.fillStyle = indicator.color || `rgba(255, 0, 0, ${indicator.opacity})`;
                 ctx.font = '16px Arial';
+                ctx.strokeText(indicator.text, indicator.x, indicator.y);
                 ctx.fillText(indicator.text, indicator.x, indicator.y);
                 indicator.y -= 1;
                 indicator.opacity -= 0.02;
@@ -598,16 +605,22 @@
         function drawTimer() {
             const currentTime = performance.now();
             const elapsedTime = (currentTime - gameStartTime) / 1000;
-            ctx.fillStyle = 'black';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
-            ctx.fillText(`Time: ${elapsedTime.toFixed(1)}s`, canvas.width / 2 - 50, 30);
+            ctx.strokeText(`Time: ${elapsedTime.toFixed(1)}s`, canvas.width / 2 - 50, canvas.height - 50);
+            ctx.fillText(`Time: ${elapsedTime.toFixed(1)}s`, canvas.width / 2 - 50, canvas.height - 50);
             return elapsedTime;
         }
 
         function drawScore() {
-            ctx.fillStyle = 'black';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
-            ctx.fillText(`Score: ${playerScore}`, 20, canvas.height - 70); // Bottom left corner under the platform
+            ctx.strokeText(`Score: ${playerScore}`, 20, canvas.height - 20); // Bottom left corner under the platform
+            ctx.fillText(`Score: ${playerScore}`, 20, canvas.height - 20); // Bottom left corner under the platform
         }
 
         function handleTap(event) {
@@ -647,7 +660,7 @@
                     player.onGround = false;
                     player.jumpCount++;
                 }
-            } else if (event.code === 'KeyL') {
+            } else if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
                 if (player && player.canShoot) {
                     projectiles.push({
                         x: player.x + player.width,
@@ -666,26 +679,6 @@
                     }, 600);
                 }
             }
-        }
-
-        function preventDoubleTapZoom(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }
-
-        function preventScroll(event) {
-            event.preventDefault();
-        }
-
-        function preventZoom(event) {
-            if (event.ctrlKey || event.metaKey) {
-                event.preventDefault();
-            }
-        }
-
-        function preventHighlight(event) {
-            event.preventDefault();
         }
 
         function spawnBox() {
@@ -859,11 +852,6 @@
 
         canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
-
-        window.addEventListener('touchstart', preventDoubleTapZoom, { passive: false });
-        window.addEventListener('touchmove', preventScroll, { passive: false });
-        window.addEventListener('wheel', preventZoom, { passive: false });
-        window.addEventListener('contextmenu', preventHighlight, { passive: false });
 
         startScreen.style.display = 'block';
     </script>
