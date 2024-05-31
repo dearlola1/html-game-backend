@@ -77,6 +77,11 @@
             padding: 0;
             margin: 0;
         }
+
+        .sound-toggle {
+            margin-top: 20px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -87,6 +92,7 @@
             <button class="character-select" onclick="selectCharacter('drake')">Drake</button>
             <button class="character-select" onclick="selectCharacter('kendrick')">Kendrick</button>
         </div>
+        <button class="sound-toggle" onclick="toggleSound()">Sound: <span id="soundStatus">On</span></button>
     </div>
     <div id="nameInput">
         <h1>Enter Your Name</h1>
@@ -114,34 +120,35 @@
         const highScoreList = document.getElementById('highScoreList');
         const nameInput = document.getElementById('nameInput');
         const playerNameInput = document.getElementById('playerName');
+        const soundStatus = document.getElementById('soundStatus');
+
+        let isSoundOn = true;
 
         const drakeImage = new Image();
-        drakeImage.src = 'https://i.imgur.com/oNnc2WL.png'; // Replace with your Drake PNG URL
-        drakeImage.onerror = () => console.log('Error loading Drake image');
+        drakeImage.src = 'https://i.imgur.com/oNnc2WL.png';
 
         const kendrickImage = new Image();
-        kendrickImage.src = 'https://i.imgur.com/8DLtz2J.png'; // Replace with your Kendrick PNG URL
-        kendrickImage.onerror = () => console.log('Error loading Kendrick image');
+        kendrickImage.src = 'https://i.imgur.com/8DLtz2J.png';
 
         const projectileImage = new Image();
-        projectileImage.src = 'https://i.imgur.com/F24I2a9.png'; // Replace with your projectile PNG URL
-        projectileImage.onerror = () => console.log('Error loading projectile image');
+        projectileImage.src = 'https://i.imgur.com/F24I2a9.png';
 
         const redBoxProjectileImage = new Image();
-        redBoxProjectileImage.src = 'https://i.imgur.com/W6Ebd9d.png'; // Replace with your red box projectile PNG URL
-        redBoxProjectileImage.onerror = () => console.log('Error loading red box projectile image');
+        redBoxProjectileImage.src = 'https://i.imgur.com/W6Ebd9d.png';
 
         const purpleBoxImage = new Image();
-        purpleBoxImage.src = 'https://example.com/path/to/purple-box.png'; // Replace with your Purple Box PNG URL
-        purpleBoxImage.onerror = () => console.log('Error loading Purple Box image');
+        purpleBoxImage.src = 'https://example.com/path/to/purple-box.png';
 
         const brownBoxImage = new Image();
-        brownBoxImage.src = 'https://i.imgur.com/TJ9oMkH.png'; // Replace with your Brown Box PNG URL
-        brownBoxImage.onerror = () => console.log('Error loading Brown Box image');
+        brownBoxImage.src = 'https://i.imgur.com/TJ9oMkH.png';
 
         const redBoxImage = new Image();
-        redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png'; // Replace with your Red Box PNG URL
-        redBoxImage.onerror = () => console.log('Error loading Red Box image');
+        redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png';
+
+        const drakeHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/drake%20hit%20sound.wav');
+        const kendrickHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/kendrick%20hit%20sound.wav');
+        const backgroundMusic = new Audio('path_to_background_music.mp3');
+        backgroundMusic.loop = true;
 
         canvas.width = 430;
         canvas.height = 932;
@@ -183,7 +190,7 @@
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                console.log('Fetched high scores:', data); // Add logging
+                console.log('Fetched high scores:', data);
                 return data;
             } catch (error) {
                 console.error('Error fetching high scores:', error);
@@ -198,6 +205,16 @@
                 li.textContent = `${score.player}: ${score.score}`;
                 highScoreList.appendChild(li);
             });
+        }
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            soundStatus.textContent = isSoundOn ? 'On' : 'Off';
+            if (isSoundOn) {
+                backgroundMusic.play();
+            } else {
+                backgroundMusic.pause();
+            }
         }
 
         function selectCharacter(character) {
@@ -217,6 +234,9 @@
             initGame(selectedPlayer, npcCharacter);
             requestFullscreen(); // Request fullscreen when the game starts
             gameStartTime = performance.now();
+            if (isSoundOn) {
+                backgroundMusic.play();
+            }
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
 
@@ -308,6 +328,13 @@
             return Math.floor(Math.random() * 11) + 10;
         }
 
+        function playSound(sound) {
+            if (isSoundOn && sound) {
+                sound.currentTime = 0;
+                sound.play();
+            }
+        }
+
         function drawCharacter(character) {
             ctx.save();
             if (character.isFlashing) {
@@ -362,6 +389,7 @@
                     playerScore += damage; // Increase score when hitting the NPC
                     damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `-${damage}`, opacity: 1 });
                     projectiles.splice(i, 1);
+                    playSound(kendrickHitSound); // Play Kendrick's hit sound when NPC gets hit
                 }
 
                 for (let j = boxes.length - 1; j >= 0; j--) {
@@ -418,7 +446,7 @@
                 if (projectile.image && projectile.image.complete && projectile.image.naturalWidth !== 0) {
                     ctx.drawImage(projectile.image, projectile.x, projectile.y, projectile.width, projectile.height);
                 } else {
-                    ctx.fillStyle =                     projectile.color;
+                    ctx.fillStyle = projectile.color;
                     ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
                 }
 
@@ -433,6 +461,7 @@
                     triggerCameraShake();
                     damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
                     npcProjectiles.splice(i, 1);
+                    playSound(drakeHitSound); // Play Drake's hit sound when player gets hit
                 }
 
                 if (projectile.owner !== 'npc' && npc
@@ -758,6 +787,9 @@
                 if (npc && npc.hp <= 0) {
                     npc = null;
                 }
+                if (isSoundOn) {
+                    backgroundMusic.pause();
+                }
             }
         }
 
@@ -767,6 +799,9 @@
             clearInterval(npcShootInterval);
             gameStartTime = performance.now(); // Restart the timer
             initGame(selectedPlayer, selectedPlayer === 'drake' ? 'kendrick' : 'drake');
+            if (isSoundOn) {
+                backgroundMusic.play();
+            }
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
 
@@ -888,4 +923,3 @@
     </script>
 </body>
 </html>
-
