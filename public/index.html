@@ -230,6 +230,14 @@
                 element.webkitRequestFullscreen();
             } else if (element.msRequestFullscreen) { // IE/Edge
                 element.msRequestFullscreen();
+            } else if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen();
+            } else if (canvas.mozRequestFullScreen) {
+                canvas.mozRequestFullScreen();
+            } else if (canvas.msRequestFullscreen) {
+                canvas.msRequestFullscreen();
             }
         }
 
