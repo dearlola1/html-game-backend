@@ -150,6 +150,10 @@
         const backgroundMusic = new Audio('path_to_background_music.mp3');
         backgroundMusic.loop = true;
 
+        const purpleBoxSound = new Audio('path_to_purple_box_sound.mp3');
+        const brownBoxSound = new Audio('path_to_brown_box_sound.mp3');
+        const redBoxSound = new Audio('path_to_red_box_sound.mp3');
+
         canvas.width = 430;
         canvas.height = 932;
 
@@ -827,7 +831,10 @@
 
         function handleBoxDestruction(box, owner) {
             console.log("Box destroyed:", box);
+            let soundToPlay;
+
             if (box.type === 'purple') {
+                soundToPlay = purpleBoxSound;
                 const wall = {
                     x: box.x,
                     y: box.y,
@@ -840,6 +847,7 @@
                 };
                 walls.push(wall);
             } else if (box.type === 'brown') {
+                soundToPlay = brownBoxSound;
                 const healAmount = getRandomHeal();
                 if (owner === 'player') {
                     player.hp = Math.min(player.hp + healAmount, 222);
@@ -849,6 +857,7 @@
                     damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `+${healAmount}`, opacity: 1, color: 'green' });
                 }
             } else if (box.type === 'red') {
+                soundToPlay = redBoxSound;
                 const numProjectiles = 12;
                 const angleStep = (2 * Math.PI) / numProjectiles;
                 for (let i = 0; i < numProjectiles; i++) {
@@ -865,6 +874,8 @@
                     });
                 }
             }
+
+            playSound(soundToPlay);
         }
 
         function npcShoot() {
