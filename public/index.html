@@ -55,6 +55,8 @@
         #gameOver .highScoreSection {
             max-height: 200px; /* Adjust as needed */
             overflow-y: auto;
+            display: flex;
+            justify-content: space-around;
         }
 
         #gameOver button, #startScreen button, #nameInput button, #controls button {
@@ -68,10 +70,11 @@
             cursor: pointer;
         }
 
-        #highScoreList {
+        #highScoreListDrake, #highScoreListKendrick {
             list-style: none;
             padding: 0;
             margin: 0;
+            width: 45%;
         }
 
         .sound-toggle, .controls-button {
@@ -112,8 +115,16 @@
             <p id="finalScore">Final Score: 0</p>
         </div>
         <div class="section highScoreSection">
-            <h2>High Scores</h2>
-            <ul id="highScoreList"></ul>
+            <div>
+                <h2>Drake High Scores</h2>
+                <p id="drakeScoreSum">Total Score: 0</p>
+                <ul id="highScoreListDrake"></ul>
+            </div>
+            <div>
+                <h2>Kendrick High Scores</h2>
+                <p id="kendrickScoreSum">Total Score: 0</p>
+                <ul id="highScoreListKendrick"></ul>
+            </div>
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
@@ -124,7 +135,10 @@
         const gameOverUI = document.getElementById('gameOver');
         const gameOverText = document.getElementById('gameOverText');
         const finalScore = document.getElementById('finalScore');
-        const highScoreList = document.getElementById('highScoreList');
+        const highScoreListDrake = document.getElementById('highScoreListDrake');
+        const highScoreListKendrick = document.getElementById('highScoreListKendrick');
+        const drakeScoreSum = document.getElementById('drakeScoreSum');
+        const kendrickScoreSum = document.getElementById('kendrickScoreSum');
         const nameInput = document.getElementById('nameInput');
         const playerNameInput = document.getElementById('playerName');
         const soundStatus = document.getElementById('soundStatus');
@@ -182,14 +196,14 @@
         let playerName = '';
         let currentWallImage = wallImage1;
 
-        async function submitHighScore(playerName, score) {
+        async function submitHighScore(playerName, score, character) {
             try {
                 const response = await fetch('https://kendrickvsdrake-afe300f0b023.herokuapp.com/highscores', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ player: playerName, score: score })
+                    body: JSON.stringify({ player: playerName, score: score, character: character })
                 });
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -218,11 +232,28 @@
 
         async function updateHighScores() {
             const highScores = await fetchHighScores();
-            highScoreList.innerHTML = '';
-            highScores.forEach(score => {
+            let drakeScores = highScores.filter(score => score.character === 'drake');
+            let kendrickScores = highScores.filter(score => score.character === 'kendrick');
+            
+            let drakeScoreSumValue = drakeScores.reduce((sum, score) => sum + score.score, 0);
+            let kendrickScoreSumValue = kendrickScores.reduce((sum, score) => sum + score.score, 0);
+            
+            drakeScoreSum.textContent = `Total Score: ${drakeScoreSumValue}`;
+            kendrickScoreSum.textContent = `Total Score: ${kendrickScoreSumValue}`;
+            
+            highScoreListDrake.innerHTML = '';
+            highScoreListKendrick.innerHTML = '';
+            
+            drakeScores.forEach(score => {
                 const li = document.createElement('li');
                 li.textContent = `${score.player}: ${score.score}`;
-                highScoreList.appendChild(li);
+                highScoreListDrake.appendChild(li);
+            });
+            
+            kendrickScores.forEach(score => {
+                const li = document.createElement('li');
+                li.textContent = `${score.player}: ${score.score}`;
+                highScoreListKendrick.appendChild(li);
             });
         }
 
@@ -803,7 +834,7 @@
                 const finalScoreValue = Math.round((playerScore * 10) - finalTime); // Round the score to the nearest number
                 finalScore.textContent = `Final Score: ${finalScoreValue}`;
                 gameOverText.textContent = player && player.hp > 0 ? 'Victory' : 'Defeat';
-                submitHighScore(playerName, finalScoreValue).then(() => {
+                submitHighScore(playerName, finalScoreValue, selectedPlayer).then(() => {
                     updateHighScores().then(() => {
                         gameOverUI.style.display = 'block';
                     });

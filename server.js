@@ -18,13 +18,15 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
 const highScoreSchema = new mongoose.Schema({
   player: String,
   score: Number,
+  character: String, // Add character field to schema
 }, { collection: 'highscores' });
 
 const HighScore = mongoose.model('HighScore', highScoreSchema);
 
 app.post('/highscores', async (req, res) => {
   try {
-    const highScore = new HighScore(req.body);
+    const { player, score, character } = req.body;
+    const highScore = new HighScore({ player, score, character });
     await highScore.save();
     res.status(201).send(highScore);
   } catch (error) {
