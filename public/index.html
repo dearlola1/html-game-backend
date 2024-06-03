@@ -158,9 +158,9 @@
         const backgroundMusic = new Audio('path_to_background_music.mp3');
         backgroundMusic.loop = true;
 
-        const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/blob/main/purple%20box%20sound.wav');
-        const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/blob/main/anita%20max.mp3');
-        const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/blob/main/red%20box%20sound.wav');
+        const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/purple%20box%20sound.wav');
+        const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/anita%20max.mp3');
+        const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/red%20box%20sound.wav');
 
         const wallImage1 = new Image();
         wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
@@ -420,7 +420,7 @@
                     playerScore += damage; // Increase score when hitting the NPC
                     damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `-${damage}`, opacity: 1 });
                     projectiles.splice(i, 1);
-                    playSound(kendrickHitSound); // Play Kendrick's hit sound when NPC gets hit
+                    playSound(npc.image === drakeImage ? drakeHitSound : kendrickHitSound); // Play the correct hit sound for NPC
                 }
 
                 for (let j = boxes.length - 1; j >= 0; j--) {
@@ -492,7 +492,7 @@
                     triggerCameraShake();
                     damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
                     npcProjectiles.splice(i, 1);
-                    playSound(drakeHitSound); // Play Drake's hit sound when player gets hit
+                    playSound(player.image === drakeImage ? drakeHitSound : kendrickHitSound); // Play the correct hit sound for player
                 }
 
                 if (projectile.owner !== 'npc' && npc
