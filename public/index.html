@@ -29,7 +29,7 @@
             height: 932px; /* iPhone 15 viewport height */
         }
 
-        #gameOver, #startScreen, #nameInput {
+        #gameOver, #startScreen, #nameInput, #controls {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -41,7 +41,7 @@
             text-align: center;
         }
 
-        #gameOver {
+        #gameOver, #nameInput, #controls {
             display: none;
         }
 
@@ -57,7 +57,7 @@
             overflow-y: auto;
         }
 
-        #gameOver button, #startScreen button, #nameInput button {
+        #gameOver button, #startScreen button, #nameInput button, #controls button {
             padding: 10px 20px;
             margin-top: 10px;
             font-size: 16px;
@@ -68,17 +68,13 @@
             cursor: pointer;
         }
 
-        #nameInput {
-            display: none;
-        }
-
         #highScoreList {
             list-style: none;
             padding: 0;
             margin: 0;
         }
 
-        .sound-toggle {
+        .sound-toggle, .controls-button {
             margin-top: 20px;
             cursor: pointer;
         }
@@ -93,6 +89,17 @@
             <button class="character-select" onclick="selectCharacter('kendrick')">Kendrick</button>
         </div>
         <button class="sound-toggle" onclick="toggleSound()">Sound: <span id="soundStatus">On</span></button>
+        <button class="controls-button" onclick="showControls()">Controls</button>
+    </div>
+    <div id="controls">
+        <h1>Controls</h1>
+        <h2>Mobile</h2>
+        <p>Tap left side = Jump</p>
+        <p>Tap right side = Shoot</p>
+        <h2>Desktop</h2>
+        <p>Spacebar = Jump</p>
+        <p>'R' key = Shoot</p>
+        <button onclick="hideControls()">Back</button>
     </div>
     <div id="nameInput">
         <h1>Enter Your Name</h1>
@@ -121,6 +128,7 @@
         const nameInput = document.getElementById('nameInput');
         const playerNameInput = document.getElementById('playerName');
         const soundStatus = document.getElementById('soundStatus');
+        const controlsScreen = document.getElementById('controls');
 
         let isSoundOn = true;
 
@@ -151,7 +159,7 @@
         backgroundMusic.loop = true;
 
         const purpleBoxSound = new Audio('path_to_purple_box_sound.mp3');
-        const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/anita%20max.mp3');
+        const brownBoxSound = new Audio('path_to_brown_box_sound.mp3');
         const redBoxSound = new Audio('path_to_red_box_sound.mp3');
 
         canvas.width = 430;
@@ -219,6 +227,16 @@
             } else {
                 backgroundMusic.pause();
             }
+        }
+
+        function showControls() {
+            startScreen.style.display = 'none';
+            controlsScreen.style.display = 'block';
+        }
+
+        function hideControls() {
+            controlsScreen.style.display = 'none';
+            startScreen.style.display = 'block';
         }
 
         function selectCharacter(character) {
