@@ -158,9 +158,15 @@
         const backgroundMusic = new Audio('path_to_background_music.mp3');
         backgroundMusic.loop = true;
 
-        const purpleBoxSound = new Audio('path_to_purple_box_sound.mp3');
-        const brownBoxSound = new Audio('path_to_brown_box_sound.mp3');
-        const redBoxSound = new Audio('path_to_red_box_sound.mp3');
+        const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/blob/main/purple%20box%20sound.wav');
+        const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/blob/main/anita%20max.mp3');
+        const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/blob/main/red%20box%20sound.wav');
+
+        const wallImage1 = new Image();
+        wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
+
+        const wallImage2 = new Image();
+        wallImage2.src = 'https://i.imgur.com/W8YPX4t.png';
 
         canvas.width = 430;
         canvas.height = 932;
@@ -168,12 +174,13 @@
         let player, npc, projectiles, npcProjectiles, boxes, walls, damageIndicators;
         let isCameraShaking = false;
         let cameraShakeDuration = 0;
-        let gameLoopInterval, spawnBoxTimeout, npcShootInterval;
+        let gameLoopInterval, spawnBoxTimeout, npcShootInterval, wallAnimationInterval;
         let selectedPlayer;
         let lastTime = 0;
         let gameStartTime = 0;
         let playerScore = 0;
         let playerName = '';
+        let currentWallImage = wallImage1;
 
         async function submitHighScore(playerName, score) {
             try {
@@ -334,8 +341,10 @@
             gameOverUI.style.display = 'none';
 
             clearInterval(npcShootInterval);
+            clearInterval(wallAnimationInterval);
 
             npcShootInterval = setInterval(npcShoot, 600);
+            wallAnimationInterval = setInterval(animateWalls, 300);
 
             const initialSpawnInterval = Math.floor(Math.random() * 8000) + 7000;
             clearTimeout(spawnBoxTimeout);
@@ -594,8 +603,7 @@
                     }
                 }
 
-                ctx.fillStyle = wall.color;
-                ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+                ctx.drawImage(currentWallImage, wall.x, wall.y, wall.width, wall.height);
 
                 if (wall.hp <= 0) {
                     walls.splice(i, 1);
@@ -740,7 +748,7 @@
                     player.onGround = false;
                     player.jumpCount++;
                 }
-            } else if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+            } else if (event.code === 'KeyR') {
                 if (player && player.canShoot) {
                     projectiles.push({
                         x: player.x + player.width,
@@ -802,6 +810,7 @@
                 });
                 clearTimeout(spawnBoxTimeout);
                 clearInterval(npcShootInterval);
+                clearInterval(wallAnimationInterval);
                 cancelAnimationFrame(gameLoopInterval);
                 if (player && player.hp <= 0) {
                     player = null;
@@ -819,6 +828,7 @@
             cancelAnimationFrame(gameLoopInterval);
             clearTimeout(spawnBoxTimeout);
             clearInterval(npcShootInterval);
+            clearInterval(wallAnimationInterval);
             gameStartTime = performance.now(); // Restart the timer
             initGame(selectedPlayer, selectedPlayer === 'drake' ? 'kendrick' : 'drake');
             if (isSoundOn) {
@@ -856,10 +866,9 @@
                 const wall = {
                     x: box.x,
                     y: box.y,
-                    width: box.width / 2,
-                    height: box.height * 2,
+                    width: 65,
+                    height: 50,
                     hp: 30,
-                    color: 'purple',
                     isFlashing: false,
                     flashTimer: 0,
                 };
@@ -914,6 +923,10 @@
                     }
                 }, 600);
             }
+        }
+
+        function animateWalls() {
+            currentWallImage = currentWallImage === wallImage1 ? wallImage2 : wallImage1;
         }
 
         function gameLoop(currentTime) {
