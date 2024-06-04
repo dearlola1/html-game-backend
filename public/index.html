@@ -75,11 +75,26 @@
             padding: 0;
             margin: 0;
             width: 45%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .highScoreBubble {
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            margin: 10px;
+            flex: 1;
         }
 
         .sound-toggle, .controls-button {
             margin-top: 20px;
             cursor: pointer;
+        }
+
+        h2 {
+            margin-top: 0;
         }
     </style>
 </head>
@@ -115,12 +130,12 @@
             <p id="finalScore">Final Score: 0</p>
         </div>
         <div class="section highScoreSection">
-            <div>
+            <div class="highScoreBubble">
                 <h2>DRAKE</h2>
                 <p id="drakeScoreSum">Total Score: 0</p>
                 <ul id="highScoreListDrake"></ul>
             </div>
-            <div>
+            <div class="highScoreBubble">
                 <h2>KENDRICK</h2>
                 <p id="kendrickScoreSum">Total Score: 0</p>
                 <ul id="highScoreListKendrick"></ul>
