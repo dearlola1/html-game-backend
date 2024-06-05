@@ -21,41 +21,36 @@
             touch-action: none; /* Disable touch actions like zoom and scroll */
         }
 
-        #left-ad, #right-ad {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 160px;
-            background-color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #left-ad {
-            left: 0;
-        }
-
-        #right-ad {
-            right: 0;
-        }
-
-        #ad-container {
-            display: none; /* Hide ads by default */
-        }
-
-        @media (min-width: 768px) { /* Show ads on desktop */
-            #ad-container {
-                display: flex;
-            }
-        }
-
         canvas {
             background-image: url('https://i.imgur.com/nFevFKm.png');
             background-size: cover;
             display: block;
             width: 430px;  /* iPhone 15 viewport width */
             height: 932px; /* iPhone 15 viewport height */
+        }
+
+        .ads-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .ad-unit {
+            width: 15%;
+            display: none; /* Hide on mobile */
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .ad-unit {
+                display: block; /* Show on desktop */
+            }
         }
 
         #gameOver, #startScreen, #nameInput, #controls {
@@ -113,25 +108,29 @@
     </style>
 </head>
 <body>
-    <div id="ad-container">
-        <div id="left-ad">
+    <div class="ads-container">
+        <div class="ad-unit">
+            <!-- AdSense Ad Unit -->
             <ins class="adsbygoogle"
-                style="display:block"
-                data-ad-client="ca-pub-1329458568594916"
-                data-ad-slot="5807899174"
-                data-ad-format="auto"
-                data-full-width-responsive="true"></ins>
+                 style="display:block"
+                 data-ad-client="ca-pub-1329458568594916"
+                 data-ad-slot="5807899174"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
         </div>
-        <div id="right-ad">
+        <div class="game-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="ad-unit">
+            <!-- AdSense Ad Unit -->
             <ins class="adsbygoogle"
-                style="display:block"
-                data-ad-client="ca-pub-1329458568594916"
-                data-ad-slot="5807899174"
-                data-ad-format="auto"
-                data-full-width-responsive="true"></ins>
+                 style="display:block"
+                 data-ad-client="ca-pub-1329458568594916"
+                 data-ad-slot="5807899174"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
         </div>
     </div>
-    <canvas id="gameCanvas"></canvas>
     <div id="startScreen">
         <h1>Select Your Character</h1>
         <div>
