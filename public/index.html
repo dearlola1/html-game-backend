@@ -114,19 +114,28 @@
         #consent-banner {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #f8f9fa;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
             padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-            display: flex;
+            display: none;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
         }
 
         #consent-banner button {
-            margin-left: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #consent-banner button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -135,7 +144,7 @@
         <div id="left-ad">
             <ins class="adsbygoogle"
                 style="display:block"
-                data-ad-client="ca-pub-1012299861388076"
+                data-ad-client="ca-pub-1329458568594916"
                 data-ad-slot="5807899174"
                 data-ad-format="auto"
                 data-full-width-responsive="true"></ins>
@@ -143,7 +152,7 @@
         <div id="right-ad">
             <ins class="adsbygoogle"
                 style="display:block"
-                data-ad-client="ca-pub-1012299861388076"
+                data-ad-client="ca-pub-1329458568594916"
                 data-ad-slot="5807899174"
                 data-ad-format="auto"
                 data-full-width-responsive="true"></ins>
@@ -193,20 +202,16 @@
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
-
     <div id="consent-banner">
         <div>
-            We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
-            <a href="/privacy-policy.html">Learn more</a>
+            This website uses cookies to ensure you get the best experience. <a href="https://policies.google.com/technologies/cookies" target="_blank" style="color: #4CAF50;">Learn more</a>
         </div>
         <div>
             <button onclick="acceptCookies()">Accept</button>
             <button onclick="declineCookies()">Decline</button>
         </div>
     </div>
-
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1012299861388076"
-     crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1012299861388076" crossorigin="anonymous"></script>
     <script>
         (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
@@ -268,16 +273,17 @@
         const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/red%20box%20sound.wav');
         redBoxSound.volume = 0.6; // Set volume to 60%
 
+        const rockImage = new Image();
+        rockImage.src = 'https://example.com/path/to/rock-image.png'; // Update with your rock image URL
+
+        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.wav'); // Update with your rock impact sound URL
+        rockImpactSound.volume = 1.0; // Set volume to 100%
+
         const wallImage1 = new Image();
         wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
 
         const wallImage2 = new Image();
         wallImage2.src = 'https://i.imgur.com/W8YPX4t.png';
-
-        const rockImage = new Image();
-        rockImage.src = 'https://example.com/path/to/rock-image.png'; // Change this URL to your rock image
-        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.mp3'); // Change this URL to your rock impact sound
-        rockImpactSound.volume = 0.7;
 
         canvas.width = 430;
         canvas.height = 932;
@@ -688,6 +694,53 @@
             }
         }
 
+        function drawRocks(scaleFactor) {
+            for (let i = rocks.length - 1; i >= 0; i--) {
+                const rock = rocks[i];
+                rock.x += rock.dx * scaleFactor * 1.5; // Adjusted speed by 1.5x
+                rock.y += rock.dy ? rock.dy * scaleFactor * 1.5 : 0; // Adjusted speed by 1.5x
+
+                if (rock.image && rock.image.complete && rock.image.naturalWidth !== 0) {
+                    ctx.drawImage(rock.image, rock.x, rock.y, rock.width, rock.height);
+                } else {
+                    ctx.fillStyle = rock.color;
+                    ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
+                }
+
+                if (player && rock.x + rock.width >= player.x
+                    && rock.x <= player.x + player.width
+                    && rock.y + rock.height >= player.y
+                    && rock.y <= player.y + player.height) {
+                    if (!rock.hasCollided) {
+                        const damage = getRockDamage();
+                        player.hp -= damage;
+                        player.isFlashing = true;
+                        playerScore = Math.max(0, playerScore - damage); // Ensure score doesn't go negative
+                        triggerCameraShake();
+                        damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
+                        rock.hasCollided = true;
+                        rock.flashTimer = 0; // Start flashing timer
+                        playSound(rockImpactSound); // Play rock impact sound
+                    }
+                }
+
+                if (rock.hasCollided) {
+                    rock.flashTimer++;
+                    ctx.globalAlpha = rock.flashTimer % 2 === 0 ? 1 : 0.5;
+                    if (rock.flashTimer > 10) {
+                        rocks.splice(i, 1); // Remove the rock after flashing
+                        ctx.globalAlpha = 1;
+                        continue; // Skip the drawing to prevent flickering
+                    }
+                }
+                ctx.globalAlpha = 1;
+
+                if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
+                    rocks.splice(i, 1);
+                }
+            }
+        }
+
         function drawBoxes(scaleFactor) {
             const oscillationAmplitude = canvas.width / 10; // Adjust this value to prevent touching platforms
             for (let i = boxes.length - 1; i >= 0; i--) {
@@ -745,43 +798,6 @@
                     walls.splice(i, 1);
                 }
                 ctx.globalAlpha = 1;
-            }
-        }
-
-        function drawRocks(scaleFactor) {
-            for (let i = rocks.length - 1; i >= 0; i--) {
-                const rock = rocks[i];
-                rock.x += rock.dx * scaleFactor * 0.5; // Adjust speed as needed
-                rock.y += rock.dy ? rock.dy * scaleFactor * 0.5 : 0; // Adjust speed as needed
-
-                if (rock.image && rock.image.complete && rock.image.naturalWidth !== 0) {
-                    ctx.drawImage(rock.image, rock.x, rock.y, rock.width, rock.height);
-                } else {
-                    ctx.fillStyle = rock.color;
-                    ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
-                }
-
-                if (player && 
-                    rock.x + rock.width >= player.x &&
-                    rock.x <= player.x + player.width &&
-                    rock.y + rock.height >= player.y &&
-                    rock.y <= player.y + player.height) {
-                    const damage = getRockDamage();
-                    player.hp -= damage;
-                    player.isFlashing = true;
-                    playerScore = Math.max(0, playerScore - damage); // Ensure score doesn't go negative
-                    damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
-                    playSound(rockImpactSound); // Play the rock impact sound
-                    // Make the rock flash and destroy itself after a short time
-                    rock.isFlashing = true;
-                    setTimeout(() => {
-                        rocks.splice(i, 1);
-                    }, 200);
-                }
-
-                if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
-                    rocks.splice(i, 1);
-                }
             }
         }
 
@@ -1116,7 +1132,7 @@
                 dy: 3.0,
                 owner: 'falling',
                 image: rockImage,
-                isFlashing: false,
+                hasCollided: false,
                 flashTimer: 0
             });
             resetPlayerIdleTimeout(); // Reset the idle timer when the rock falls
@@ -1140,9 +1156,9 @@
             if (npc) drawCharacter(npc);
             drawProjectiles(scaleFactor);
             drawNpcProjectiles(scaleFactor);
+            drawRocks(scaleFactor);
             drawBoxes(scaleFactor);
             drawWalls();
-            drawRocks(scaleFactor);
             updatePlayer(deltaTime);
             updateNpc(deltaTime);
             drawHP();
@@ -1160,15 +1176,38 @@
         canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
 
-        startScreen.style.display = 'block';
+        function showConsentBanner() {
+            const consentBanner = document.getElementById('consent-banner');
+            consentBanner.style.display = 'flex';
+            document.body.style.pointerEvents = 'none'; // Disable interactions
+        }
+
+        function hideConsentBanner() {
+            const consentBanner = document.getElementById('consent-banner');
+            consentBanner.style.display = 'none';
+            document.body.style.pointerEvents = 'auto'; // Enable interactions
+        }
 
         function acceptCookies() {
-            document.getElementById('consent-banner').style.display = 'none';
+            localStorage.setItem('cookieConsent', 'true');
+            hideConsentBanner();
         }
 
         function declineCookies() {
-            document.getElementById('consent-banner').style.display = 'none';
+            alert('You need to accept cookies to use this site.');
         }
+
+        function checkCookieConsent() {
+            const consent = localStorage.getItem('cookieConsent');
+            if (!consent) {
+                showConsentBanner();
+            } else {
+                hideConsentBanner();
+            }
+        }
+
+        checkCookieConsent();
+        startScreen.style.display = 'block';
     </script>
 </body>
 </html>
