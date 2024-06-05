@@ -15,18 +15,43 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            -webkit-touch-callout: none; /* Disable callout, tap highlight */
-            -webkit-user-select: none;   /* Disable text selection */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling */
-            touch-action: none; /* Disable touch actions like zoom and scroll */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-overflow-scrolling: touch;
+            touch-action: none;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
 
         canvas {
             background-image: url('https://i.imgur.com/nFevFKm.png');
             background-size: cover;
             display: block;
-            width: 430px;  /* iPhone 15 viewport width */
-            height: 932px; /* iPhone 15 viewport height */
+            width: 430px;
+            height: 932px;
+        }
+
+        .ad-container {
+            width: 200px;
+            height: 932px;
+            display: block;
+            position: relative;
+        }
+
+        #left-ad, #right-ad {
+            width: 100%;
+            height: 100%;
+        }
+
+        @media screen and (max-width: 768px) {
+            .ad-container {
+                display: none;
+            }
         }
 
         #gameOver, #startScreen, #nameInput, #controls {
@@ -53,7 +78,7 @@
         }
 
         #gameOver .highScoreSection {
-            max-height: 200px; /* Adjust as needed */
+            max-height: 200px;
             overflow-y: auto;
             display: flex;
             justify-content: space-around;
@@ -97,9 +122,30 @@
             margin-top: 0;
         }
     </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916"
+        crossorigin="anonymous"></script>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <div class="container">
+        <div class="ad-container" id="left-ad">
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-1329458568594916"
+                data-ad-slot="5807899174"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="ad-container" id="right-ad">
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-1329458568594916"
+                data-ad-slot="5807899174"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+        </div>
+    </div>
+    
     <div id="startScreen">
         <h1>Select Your Character</h1>
         <div>
@@ -141,8 +187,9 @@
                 <ul id="highScoreListKendrick"></ul>
             </div>
         </div>
-        <button onclick="restartGame()">Restart</button>
+        <button onclick="restartGameWithAd()">Restart</button>
     </div>
+    
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -184,7 +231,7 @@
 
         const drakeHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/drake%20hit%20sound.wav');
         const kendrickHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/kendrick%20hit%20sound.wav');
-        const backgroundMusic = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/noit%20like%20us%20cheap.wav');
+        const backgroundMusic = new Audio('path_to_background_music.mp3');
         backgroundMusic.loop = true;
 
         const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/purple%20box%20sound.wav');
@@ -870,6 +917,12 @@
             }
         }
 
+        function restartGameWithAd() {
+            // Here you can place code to trigger an ad
+            console.log("Restarting game with ad");
+            restartGame();
+        }
+
         function restartGame() {
             cancelAnimationFrame(gameLoopInterval);
             clearTimeout(spawnBoxTimeout);
@@ -940,8 +993,8 @@
                         y: box.y + box.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.5 * Math.cos(angle) * 1.5, // Adjusted projectile speed
-                        dy: 1.5 * Math.sin(angle) * 1.5, // Adjusted projectile speed
+                        dx: 1.5 * Math.cos(angle) * 1.5,
+                        dy: 1.5 * Math.sin(angle) * 1.5,
                         fromRedBox: true,
                         image: redBoxProjectileImage
                     });
@@ -958,7 +1011,7 @@
                     y: npc.y + npc.height / 2,
                     width: 12,
                     height: 12,
-                    dx: -1.9 * 1.5, // Adjusted projectile speed
+                    dx: -1.9 * 1.5,
                     owner: 'npc',
                     image: projectileImage
                 });
@@ -979,7 +1032,7 @@
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            const scaleFactor = deltaTime / 16.67; // 16.67ms is the time per frame at 60 FPS
+            const scaleFactor = deltaTime / 16.67;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1008,6 +1061,9 @@
         window.addEventListener('keydown', handleKeyDown);
 
         startScreen.style.display = 'block';
+
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
 </body>
 </html>
