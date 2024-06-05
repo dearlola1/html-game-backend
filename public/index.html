@@ -175,7 +175,8 @@
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916"
+     crossorigin="anonymous"></script>
     <script>
         (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
@@ -219,13 +220,23 @@
         redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png';
 
         const drakeHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/drake%20hit%20sound.wav');
+        drakeHitSound.volume = 0.7; // Set volume to 70%
+
         const kendrickHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/kendrick%20hit%20sound.wav');
-        const backgroundMusic = new Audio('path_to_background_music.mp3');
+        kendrickHitSound.volume = 0.8; // Set volume to 80%
+
+        const backgroundMusic = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/noit%20like%20us%20cheap.wav');
+        backgroundMusic.volume = 0.3; // Set volume to 30%
         backgroundMusic.loop = true;
 
         const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/purple%20box%20sound.wav');
+        purpleBoxSound.volume = 0.6; // Set volume to 60%
+
         const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/anita%20max.mp3');
+        brownBoxSound.volume = 0.9; // Set volume to 90%
+
         const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/red%20box%20sound.wav');
+        redBoxSound.volume = 0.6; // Set volume to 60%
 
         const wallImage1 = new Image();
         wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
@@ -233,13 +244,18 @@
         const wallImage2 = new Image();
         wallImage2.src = 'https://i.imgur.com/W8YPX4t.png';
 
+        const rockImage = new Image();
+        rockImage.src = 'https://example.com/path/to/rock-image.png'; // Replace with your rock image URL
+
+        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.mp3'); // Replace with your rock impact sound URL
+
         canvas.width = 430;
         canvas.height = 932;
 
-        let player, npc, projectiles, npcProjectiles, boxes, walls, damageIndicators;
+        let player, npc, projectiles, npcProjectiles, boxes, walls, damageIndicators, rockProjectiles;
         let isCameraShaking = false;
         let cameraShakeDuration = 0;
-        let gameLoopInterval, spawnBoxTimeout, npcShootInterval, wallAnimationInterval;
+        let gameLoopInterval, spawnBoxTimeout, npcShootInterval, wallAnimationInterval, playerIdleTimeout;
         let selectedPlayer;
         let lastTime = 0;
         let gameStartTime = 0;
@@ -419,6 +435,7 @@
             boxes = [];
             walls = [];
             damageIndicators = [];
+            rockProjectiles = [];
             playerScore = 0;  // Reset player score
             gameOverUI.style.display = 'none';
 
@@ -431,10 +448,12 @@
             const initialSpawnInterval = Math.floor(Math.random() * 8000) + 7000;
             clearTimeout(spawnBoxTimeout);
             spawnBoxTimeout = setTimeout(spawnBox, initialSpawnInterval);
+
+            resetPlayerIdleTimeout(); // Reset the idle timer when the game starts
         }
 
-        function getRandomDamage() {
-            return Math.floor(Math.random() * 5) + 2;
+        function getRandomDamage(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
         function getRandomHeal() {
@@ -496,7 +515,7 @@
                     projectile.x <= npc.x + npc.width &&
                     projectile.y >= npc.y &&
                     projectile.y <= npc.y + npc.height) {
-                    const damage = getRandomDamage();
+                    const damage = getRandomDamage(2, 6);
                     npc.hp -= damage;
                     npc.isFlashing = true;
                     playerScore += damage; // Increase score when hitting the NPC
@@ -511,7 +530,7 @@
                         && projectile.x <= box.x + box.width
                         && projectile.y >= box.y
                         && projectile.y <= box.y + box.height) {
-                        const damage = getRandomDamage();
+                        const damage = getRandomDamage(2, 6);
                         box.hp -= damage;
                         box.isFlashing = true;
                         playerScore += damage; // Increase score when hitting a box
@@ -531,13 +550,14 @@
                         && projectile.x <= wall.x + wall.width
                         && projectile.y >= wall.y
                         && projectile.y <= wall.y + wall.height) {
-                        const damage = getRandomDamage();
+                        const damage = getRandomDamage(2, 6);
                         wall.hp -= damage;
                         wall.isFlashing = true;
-                        playerScore += damage; // Increase score when hitting a wall
+                        playerScore += damage * 5; // Increase score by 5x the damage when hitting a wall
                         damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
                         if (wall.hp <= 0) {
                             walls.splice(j, 1);
+                            playSound(purpleBoxSound); // Play the purple box sound when a wall is destroyed
                         }
                         projectiles.splice(i, 1);
                         break;
@@ -567,10 +587,10 @@
                     && projectile.x <= player.x + player.width
                     && projectile.y >= player.y
                     && projectile.y <= player.y + player.height) {
-                    const damage = getRandomDamage();
+                    const damage = getRandomDamage(2, 6);
                     player.hp -= damage;
                     player.isFlashing = true;
-                    playerScore -= damage; // Decrease score when the player is hit
+                    playerScore = Math.max(0, playerScore - damage); // Ensure score doesn't go negative
                     triggerCameraShake();
                     damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
                     npcProjectiles.splice(i, 1);
@@ -582,7 +602,7 @@
                     && projectile.x <= npc.x + npc.width
                     && projectile.y >= npc.y
                     && projectile.y <= npc.y + npc.height) {
-                    const damage = getRandomDamage();
+                    const damage = getRandomDamage(2, 6);
                     npc.hp -= damage;
                     npc.isFlashing = true;
                     damageIndicators.push({ x: npc.x + npc.width / 2, y: npc.y - 10, text: `-${damage}`, opacity: 1 });
@@ -596,7 +616,7 @@
                             && projectile.x <= box.x + box.width
                             && projectile.y >= box.y
                             && projectile.y <= box.y + box.height) {
-                            const damage = getRandomDamage();
+                            const damage = getRandomDamage(2, 6);
                             box.hp -= damage;
                             box.isFlashing = true;
                             damageIndicators.push({ x: box.x + box.width / 2, y: box.y - 10, text: `-${damage}`, opacity: 1 });
@@ -616,12 +636,12 @@
                         && projectile.x <= wall.x + wall.width
                         && projectile.y >= wall.y
                         && projectile.y <= wall.y + wall.height) {
-                        const damage = getRandomDamage();
+                        const damage = getRandomDamage(2, 6);
                         wall.hp -= damage;
                         wall.isFlashing = true;
                         damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
                         if (wall.hp <= 0) {
-                            walls.splice(j, 1);
+                            walls.splice(i, 1);
                         }
                         npcProjectiles.splice(i, 1);
                         break;
@@ -801,6 +821,7 @@
                     player.dy = player.jumpStrength;
                     player.onGround = false;
                     player.jumpCount++;
+                    resetPlayerIdleTimeout(); // Reset the idle timer when the player jumps
                 }
             } else {
                 if (player && player.canShoot) {
@@ -829,6 +850,7 @@
                     player.dy = player.jumpStrength;
                     player.onGround = false;
                     player.jumpCount++;
+                    resetPlayerIdleTimeout(); // Reset the idle timer when the player jumps
                 }
             } else if (event.code === 'KeyR') {
                 if (player && player.canShoot) {
@@ -893,6 +915,7 @@
                 clearTimeout(spawnBoxTimeout);
                 clearInterval(npcShootInterval);
                 clearInterval(wallAnimationInterval);
+                clearTimeout(playerIdleTimeout);
                 cancelAnimationFrame(gameLoopInterval);
                 if (player && player.hp <= 0) {
                     player = null;
@@ -911,6 +934,7 @@
             clearTimeout(spawnBoxTimeout);
             clearInterval(npcShootInterval);
             clearInterval(wallAnimationInterval);
+            clearTimeout(playerIdleTimeout);
             gameStartTime = performance.now(); // Restart the timer
             initGame(selectedPlayer, selectedPlayer === 'drake' ? 'kendrick' : 'drake');
             if (isSoundOn) {
@@ -1011,6 +1035,68 @@
             currentWallImage = currentWallImage === wallImage1 ? wallImage2 : wallImage1;
         }
 
+        function triggerFallingProjectile() {
+            rockProjectiles.push({
+                x: canvas.width - 30,
+                y: canvas.height / 2.3,
+                width: 40,
+                height: 40,
+                dx: -3.0,
+                dy: 3.0,
+                owner: 'falling',
+                image: rockImage
+            });
+            resetPlayerIdleTimeout(); // Reset the idle timer when the projectile falls
+        }
+
+        function resetPlayerIdleTimeout() {
+            clearTimeout(playerIdleTimeout);
+            playerIdleTimeout = setTimeout(triggerFallingProjectile, 9000);
+        }
+
+        function drawRockProjectiles(scaleFactor) {
+            for (let i = rockProjectiles.length - 1; i >= 0; i--) {
+                const rock = rockProjectiles[i];
+                rock.x += rock.dx * scaleFactor * 1.5; // Adjusted speed by 1.5x
+                rock.y += rock.dy ? rock.dy * scaleFactor * 1.5 : 0; // Adjusted speed by 1.5x
+
+                if (rock.image && rock.image.complete && rock.image.naturalWidth !== 0) {
+                    ctx.drawImage(rock.image, rock.x, rock.y, rock.width, rock.height);
+                } else {
+                    ctx.fillStyle = rock.color;
+                    ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
+                }
+
+                if (player && rock.x + rock.width >= player.x
+                    && rock.x <= player.x + player.width
+                    && rock.y + rock.height >= player.y
+                    && rock.y <= player.y + player.height) {
+                    const damage = getRandomDamage(25, 50);
+                    player.hp -= damage;
+                    player.isFlashing = true;
+                    playerScore = Math.max(0, playerScore - damage); // Ensure score doesn't go negative
+                    damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
+                    playSound(rockImpactSound); // Play the rock impact sound
+                    triggerCameraShake();
+                    rock.isFlashing = true;
+                    rock.flashTimer = 0;
+                }
+
+                if (rock.isFlashing) {
+                    ctx.globalAlpha = rock.flashTimer % 2 === 0 ? 1 : 0.5;
+                    rock.flashTimer++;
+                    if (rock.flashTimer > 10) {
+                        rockProjectiles.splice(i, 1); // Destroy the rock after flashing
+                        ctx.globalAlpha = 1;
+                    }
+                }
+
+                if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
+                    rockProjectiles.splice(i, 1);
+                }
+            }
+        }
+
         function gameLoop(currentTime) {
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
@@ -1026,6 +1112,7 @@
             drawNpcProjectiles(scaleFactor);
             drawBoxes(scaleFactor);
             drawWalls();
+            drawRockProjectiles(scaleFactor);
             updatePlayer(deltaTime);
             updateNpc(deltaTime);
             drawHP();
