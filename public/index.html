@@ -15,43 +15,47 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -webkit-overflow-scrolling: touch;
-            touch-action: none;
+            -webkit-touch-callout: none; /* Disable callout, tap highlight */
+            -webkit-user-select: none;   /* Disable text selection */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling */
+            touch-action: none; /* Disable touch actions like zoom and scroll */
         }
 
-        .container {
+        #left-ad, #right-ad {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 160px;
+            background-color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
+        }
+
+        #left-ad {
+            left: 0;
+        }
+
+        #right-ad {
+            right: 0;
+        }
+
+        #ad-container {
+            display: none; /* Hide ads by default */
+        }
+
+        @media (min-width: 768px) { /* Show ads on desktop */
+            #ad-container {
+                display: flex;
+            }
         }
 
         canvas {
             background-image: url('https://i.imgur.com/nFevFKm.png');
             background-size: cover;
             display: block;
-            width: 430px;
-            height: 932px;
-        }
-
-        .ad-container {
-            width: 200px;
-            height: 932px;
-            display: block;
-            position: relative;
-        }
-
-        #left-ad, #right-ad {
-            width: 100%;
-            height: 100%;
-        }
-
-        @media screen and (max-width: 768px) {
-            .ad-container {
-                display: none;
-            }
+            width: 430px;  /* iPhone 15 viewport width */
+            height: 932px; /* iPhone 15 viewport height */
         }
 
         #gameOver, #startScreen, #nameInput, #controls {
@@ -78,7 +82,7 @@
         }
 
         #gameOver .highScoreSection {
-            max-height: 200px;
+            max-height: 200px; /* Adjust as needed */
             overflow-y: auto;
             display: flex;
             justify-content: space-around;
@@ -100,34 +104,17 @@
             padding: 0;
             margin: 0;
             width: 45%;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .highScoreBubble {
-            padding: 15px;
-            border-radius: 15px;
-            background: rgba(0, 0, 0, 0.6);
-            margin: 10px;
-            flex: 1;
         }
 
         .sound-toggle, .controls-button {
             margin-top: 20px;
             cursor: pointer;
         }
-
-        h2 {
-            margin-top: 0;
-        }
     </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916"
-        crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="ad-container" id="left-ad">
+    <div id="ad-container">
+        <div id="left-ad">
             <ins class="adsbygoogle"
                 style="display:block"
                 data-ad-client="ca-pub-1329458568594916"
@@ -135,8 +122,7 @@
                 data-ad-format="auto"
                 data-full-width-responsive="true"></ins>
         </div>
-        <canvas id="gameCanvas"></canvas>
-        <div class="ad-container" id="right-ad">
+        <div id="right-ad">
             <ins class="adsbygoogle"
                 style="display:block"
                 data-ad-client="ca-pub-1329458568594916"
@@ -145,7 +131,7 @@
                 data-full-width-responsive="true"></ins>
         </div>
     </div>
-    
+    <canvas id="gameCanvas"></canvas>
     <div id="startScreen">
         <h1>Select Your Character</h1>
         <div>
@@ -176,20 +162,23 @@
             <p id="finalScore">Final Score: 0</p>
         </div>
         <div class="section highScoreSection">
-            <div class="highScoreBubble">
+            <div>
                 <h2>DRAKE</h2>
                 <p id="drakeScoreSum">Total Score: 0</p>
                 <ul id="highScoreListDrake"></ul>
             </div>
-            <div class="highScoreBubble">
+            <div>
                 <h2>KENDRICK</h2>
                 <p id="kendrickScoreSum">Total Score: 0</p>
                 <ul id="highScoreListKendrick"></ul>
             </div>
         </div>
-        <button onclick="restartGameWithAd()">Restart</button>
+        <button onclick="restartGame()">Restart</button>
     </div>
-    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916" crossorigin="anonymous"></script>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -917,12 +906,6 @@
             }
         }
 
-        function restartGameWithAd() {
-            // Here you can place code to trigger an ad
-            console.log("Restarting game with ad");
-            restartGame();
-        }
-
         function restartGame() {
             cancelAnimationFrame(gameLoopInterval);
             clearTimeout(spawnBoxTimeout);
@@ -993,8 +976,8 @@
                         y: box.y + box.height / 2,
                         width: 12,
                         height: 12,
-                        dx: 1.5 * Math.cos(angle) * 1.5,
-                        dy: 1.5 * Math.sin(angle) * 1.5,
+                        dx: 1.5 * Math.cos(angle) * 1.5, // Adjusted projectile speed
+                        dy: 1.5 * Math.sin(angle) * 1.5, // Adjusted projectile speed
                         fromRedBox: true,
                         image: redBoxProjectileImage
                     });
@@ -1011,7 +994,7 @@
                     y: npc.y + npc.height / 2,
                     width: 12,
                     height: 12,
-                    dx: -1.9 * 1.5,
+                    dx: -1.9 * 1.5, // Adjusted projectile speed
                     owner: 'npc',
                     image: projectileImage
                 });
@@ -1032,7 +1015,7 @@
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            const scaleFactor = deltaTime / 16.67;
+            const scaleFactor = deltaTime / 16.67; // 16.67ms is the time per frame at 60 FPS
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1061,9 +1044,6 @@
         window.addEventListener('keydown', handleKeyDown);
 
         startScreen.style.display = 'block';
-
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
 </body>
 </html>
