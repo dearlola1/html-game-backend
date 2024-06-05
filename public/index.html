@@ -15,10 +15,10 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -webkit-overflow-scrolling: touch;
-            touch-action: none;
+            -webkit-touch-callout: none; /* Disable callout, tap highlight */
+            -webkit-user-select: none;   /* Disable text selection */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling */
+            touch-action: none; /* Disable touch actions like zoom and scroll */
         }
 
         #left-ad, #right-ad {
@@ -41,10 +41,10 @@
         }
 
         #ad-container {
-            display: none;
+            display: none; /* Hide ads by default */
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 768px) { /* Show ads on desktop */
             #ad-container {
                 display: flex;
             }
@@ -54,8 +54,8 @@
             background-image: url('https://i.imgur.com/nFevFKm.png');
             background-size: cover;
             display: block;
-            width: 430px;
-            height: 932px;
+            width: 430px;  /* iPhone 15 viewport width */
+            height: 932px; /* iPhone 15 viewport height */
         }
 
         #gameOver, #startScreen, #nameInput, #controls {
@@ -82,7 +82,7 @@
         }
 
         #gameOver .highScoreSection {
-            max-height: 200px;
+            max-height: 200px; /* Adjust as needed */
             overflow-y: auto;
             display: flex;
             justify-content: space-around;
@@ -110,9 +110,25 @@
             margin-top: 20px;
             cursor: pointer;
         }
+
+        #consent-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #f8f9fa;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #consent-banner button {
+            margin-left: 10px;
+        }
     </style>
-    <!-- AdSense verification code -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1012299861388076" crossorigin="anonymous"></script>
 </head>
 <body>
     <div id="ad-container">
@@ -177,7 +193,20 @@
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916" crossorigin="anonymous"></script>
+
+    <div id="consent-banner">
+        <div>
+            We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
+            <a href="/privacy-policy.html">Learn more</a>
+        </div>
+        <div>
+            <button onclick="acceptCookies()">Accept</button>
+            <button onclick="declineCookies()">Decline</button>
+        </div>
+    </div>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1012299861388076"
+     crossorigin="anonymous"></script>
     <script>
         (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
@@ -239,9 +268,6 @@
         const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/red%20box%20sound.wav');
         redBoxSound.volume = 0.6; // Set volume to 60%
 
-        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.wav'); // Update this path
-        rockImpactSound.volume = 0.8;
-
         const wallImage1 = new Image();
         wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
 
@@ -249,7 +275,9 @@
         wallImage2.src = 'https://i.imgur.com/W8YPX4t.png';
 
         const rockImage = new Image();
-        rockImage.src = 'https://example.com/path/to/rock-image.png'; // Update this path
+        rockImage.src = 'https://example.com/path/to/rock-image.png'; // Change this URL to your rock image
+        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.mp3'); // Change this URL to your rock impact sound
+        rockImpactSound.volume = 0.7;
 
         canvas.width = 430;
         canvas.height = 932;
@@ -437,7 +465,7 @@
             boxes = [];
             walls = [];
             damageIndicators = [];
-            rocks = []; // Add rocks array
+            rocks = [];
             playerScore = 0;  // Reset player score
             gameOverUI.style.display = 'none';
 
@@ -458,8 +486,8 @@
             return Math.floor(Math.random() * 5) + 2;
         }
 
-        function getRandomRockDamage() {
-            return Math.floor(Math.random() * 26) + 25; // Random damage between 25-50
+        function getRockDamage() {
+            return Math.floor(Math.random() * 26) + 25;
         }
 
         function getRandomHeal() {
@@ -723,17 +751,8 @@
         function drawRocks(scaleFactor) {
             for (let i = rocks.length - 1; i >= 0; i--) {
                 const rock = rocks[i];
-                rock.x += rock.dx * scaleFactor;
-                rock.y += rock.dy * scaleFactor;
-
-                if (rock.isFlashing) {
-                    ctx.globalAlpha = rock.flashTimer % 2 === 0 ? 1 : 0.5;
-                    rock.flashTimer++;
-                    if (rock.flashTimer > 10) {
-                        rock.isFlashing = false;
-                        rock.flashTimer = 0;
-                    }
-                }
+                rock.x += rock.dx * scaleFactor * 0.5; // Adjust speed as needed
+                rock.y += rock.dy ? rock.dy * scaleFactor * 0.5 : 0; // Adjust speed as needed
 
                 if (rock.image && rock.image.complete && rock.image.naturalWidth !== 0) {
                     ctx.drawImage(rock.image, rock.x, rock.y, rock.width, rock.height);
@@ -741,9 +760,26 @@
                     ctx.fillStyle = rock.color;
                     ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
                 }
-                ctx.globalAlpha = 1;
 
-                if (rock.y > canvas.height || rock.x < 0 || rock.x > canvas.width) {
+                if (player && 
+                    rock.x + rock.width >= player.x &&
+                    rock.x <= player.x + player.width &&
+                    rock.y + rock.height >= player.y &&
+                    rock.y <= player.y + player.height) {
+                    const damage = getRockDamage();
+                    player.hp -= damage;
+                    player.isFlashing = true;
+                    playerScore = Math.max(0, playerScore - damage); // Ensure score doesn't go negative
+                    damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
+                    playSound(rockImpactSound); // Play the rock impact sound
+                    // Make the rock flash and destroy itself after a short time
+                    rock.isFlashing = true;
+                    setTimeout(() => {
+                        rocks.splice(i, 1);
+                    }, 200);
+                }
+
+                if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
                     rocks.splice(i, 1);
                 }
             }
@@ -1070,7 +1106,7 @@
             currentWallImage = currentWallImage === wallImage1 ? wallImage2 : wallImage1;
         }
 
-        function triggerFallingProjectile() {
+        function triggerFallingRock() {
             rocks.push({
                 x: canvas.width - 30,
                 y: canvas.height / 2.3,
@@ -1081,14 +1117,14 @@
                 owner: 'falling',
                 image: rockImage,
                 isFlashing: false,
-                flashTimer: 0,
+                flashTimer: 0
             });
-            resetPlayerIdleTimeout(); // Reset the idle timer when the projectile falls
+            resetPlayerIdleTimeout(); // Reset the idle timer when the rock falls
         }
 
         function resetPlayerIdleTimeout() {
             clearTimeout(playerIdleTimeout);
-            playerIdleTimeout = setTimeout(triggerFallingProjectile, 9000);
+            playerIdleTimeout = setTimeout(triggerFallingRock, 9000);
         }
 
         function gameLoop(currentTime) {
@@ -1106,7 +1142,7 @@
             drawNpcProjectiles(scaleFactor);
             drawBoxes(scaleFactor);
             drawWalls();
-            drawRocks(scaleFactor); // Draw rocks
+            drawRocks(scaleFactor);
             updatePlayer(deltaTime);
             updateNpc(deltaTime);
             drawHP();
@@ -1125,6 +1161,14 @@
         window.addEventListener('keydown', handleKeyDown);
 
         startScreen.style.display = 'block';
+
+        function acceptCookies() {
+            document.getElementById('consent-banner').style.display = 'none';
+        }
+
+        function declineCookies() {
+            document.getElementById('consent-banner').style.display = 'none';
+        }
     </script>
 </body>
 </html>
