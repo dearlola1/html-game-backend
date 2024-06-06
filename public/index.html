@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>KENDRICK VS DRAKE</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap">
     <style>
         body {
             margin: 0;
@@ -13,7 +14,7 @@
             align-items: center;
             height: 100vh;
             background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
+            font-family: 'Tiny5', Arial, sans-serif;
             position: relative;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -104,6 +105,7 @@
             padding: 0;
             margin: 0;
             width: 45%;
+            text-align: center;
         }
 
         .sound-toggle, .controls-button {
@@ -125,6 +127,25 @@
 
         #consentBanner button {
             margin: 5px;
+        }
+
+        .highScoreSection div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .highScoreSection ul li {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .total-score {
+            font-size: 24px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -179,15 +200,17 @@
         </div>
         <div class="section highScoreSection">
             <div>
-                <h2>DRAKE</h2>
-                <p id="drakeScoreSum">Total Score: 0</p>
-                <ul id="highScoreListDrake"></ul>
-            </div>
-            <div>
-                <h2>KENDRICK</h2>
-                <p id="kendrickScoreSum">Total Score: 0</p>
-                <ul id="highScoreListKendrick"></ul>
-            </div>
+    <h2>DRAKE</h2>
+    <p>Total Score</p>
+    <p id="drakeScoreSum">0</p>
+    <ul id="highScoreListDrake"></ul>
+</div>
+<div>
+    <h2>KENDRICK</h2>
+    <p>Total Score</p>
+    <p id="kendrickScoreSum">0</p>
+    <ul id="highScoreListKendrick"></ul>
+</div>
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
@@ -340,13 +363,23 @@
             
             drakeScores.forEach(score => {
                 const li = document.createElement('li');
-                li.textContent = `${score.player}: ${score.score}`;
+                const playerName = document.createElement('span');
+                playerName.textContent = score.player;
+                const playerScore = document.createElement('span');
+                playerScore.textContent = score.score;
+                li.appendChild(playerName);
+                li.appendChild(playerScore);
                 highScoreListDrake.appendChild(li);
             });
             
             kendrickScores.forEach(score => {
                 const li = document.createElement('li');
-                li.textContent = `${score.player}: ${score.score}`;
+                const playerName = document.createElement('span');
+                playerName.textContent = score.player;
+                const playerScore = document.createElement('span');
+                playerScore.textContent = score.score;
+                li.appendChild(playerName);
+                li.appendChild(playerScore);
                 highScoreListKendrick.appendChild(li);
             });
         }
