@@ -15,7 +15,7 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             position: relative;
-            -webkit-touch-callout: none; 
+            -webkit-touch-callout: none;
             -webkit-user-select: none;
             -webkit-overflow-scrolling: touch;
             touch-action: none;
@@ -241,29 +241,29 @@
         redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png';
 
         const rockImage = new Image();
-        rockImage.src = 'https://i.imgur.com/hZ7aWFu.png'; 
+        rockImage.src = 'https://i.imgur.com/hZ7aWFu.png'; // Rock image URL
 
         const drakeHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/drake%20hit%20sound.wav');
-        drakeHitSound.volume = 0.7; 
+        drakeHitSound.volume = 0.7; // Set volume to 80%
 
         const kendrickHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/kendrick%20hit%20sound.wav');
-        kendrickHitSound.volume = 0.8; 
+        kendrickHitSound.volume = 0.8; // Set volume to 80%
 
         const backgroundMusic = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/noit%20like%20us%20cheap.wav');
-        backgroundMusic.volume = 0.3; 
+        backgroundMusic.volume = 0.3; // Set volume to 50%
         backgroundMusic.loop = true;
 
         const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/purple%20box%20sound.wav');
-        purpleBoxSound.volume = 0.6;
+        purpleBoxSound.volume = 0.6; // Set volume to 60%
 
         const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/anita%20max.mp3');
-        brownBoxSound.volume = 0.9;
+        brownBoxSound.volume = 0.9; // Set volume to 60%
 
         const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/red%20box%20sound.wav');
-        redBoxSound.volume = 0.6;
+        redBoxSound.volume = 0.6; // Set volume to 60%
 
         const rockImpactSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/rock%20impact%20sound.wav');
-        rockImpactSound.volume = 0.8; 
+        rockImpactSound.volume = 0.8; // Set volume to 80%
 
         const wallImage1 = new Image();
         wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
@@ -285,15 +285,15 @@
         let playerName = '';
         let currentWallImage = wallImage1;
 
-        async function submitHighScore(playerName, score, character, apiKey) {
+        async function submitHighScore(playerName, score, character) {
             try {
                 const response = await fetch('https://kendrickvsdrake-afe300f0b023.herokuapp.com/highscores', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': apiKey
+                        'Authorization': 'Bearer c922f825-4de5-4693-bdba-dd753c4e4a82' // API key
                     },
-                    body: JSON.stringify({ player, score, character })
+                    body: JSON.stringify({ player: playerName, score: score, character: character })
                 });
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -306,10 +306,12 @@
             }
         }
 
-        async function fetchHighScores(apiKey) {
+        async function fetchHighScores() {
             try {
                 const response = await fetch('https://kendrickvsdrake-afe300f0b023.herokuapp.com/highscores', {
-                    headers: { 'Authorization': apiKey }
+                    headers: {
+                        'Authorization': 'Bearer c922f825-4de5-4693-bdba-dd753c4e4a82' // API key
+                    }
                 });
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -322,8 +324,8 @@
             }
         }
 
-        async function updateHighScores(apiKey) {
-            const highScores = await fetchHighScores(apiKey);
+        async function updateHighScores() {
+            const highScores = await fetchHighScores();
             let drakeScores = highScores.filter(score => score.character === 'drake');
             let kendrickScores = highScores.filter(score => score.character === 'kendrick');
             
@@ -384,7 +386,7 @@
             nameInput.style.display = 'none';
             const npcCharacter = selectedPlayer === 'drake' ? 'kendrick' : 'drake';
             initGame(selectedPlayer, npcCharacter);
-            requestFullscreen(); 
+            requestFullscreen();
             gameStartTime = performance.now();
             if (isSoundOn) {
                 backgroundMusic.play();
@@ -396,11 +398,11 @@
             const element = document.documentElement;
             if (element.requestFullscreen) {
                 element.requestFullscreen();
-            } else if (element.mozRequestFullScreen) { 
+            } else if (element.mozRequestFullScreen) {
                 element.mozRequestFullScreen();
-            } else if (element.webkitRequestFullscreen) { 
+            } else if (element.webkitRequestFullscreen) {
                 element.webkitRequestFullscreen();
-            } else if (element.msRequestFullscreen) { 
+            } else if (element.msRequestFullscreen) {
                 element.msRequestFullscreen();
             } else if (canvas.requestFullscreen) {
                 canvas.requestFullscreen();
@@ -409,7 +411,7 @@
             } else if (canvas.mozRequestFullScreen) {
                 canvas.mozRequestFullScreen();
             } else if (canvas.msRequestFullscreen) {
-                canvas.msRequestFullscreen();
+                canvas.msRequestFullScreen();
             }
         }
 
@@ -474,7 +476,7 @@
             clearTimeout(spawnBoxTimeout);
             spawnBoxTimeout = setTimeout(spawnBox, initialSpawnInterval);
 
-            resetPlayerIdleTimeout(); 
+            resetPlayerIdleTimeout();
         }
 
         function getRandomDamage() {
@@ -482,7 +484,7 @@
         }
 
         function getRockDamage() {
-            return Math.floor(Math.random() * 26) + 25;
+            return Math.floor(Math.random() * 26) + 25; // 25-50 damage
         }
 
         function getRandomHeal() {
@@ -744,45 +746,47 @@
         }
 
         function drawRocks(scaleFactor) {
-            for (let i = rocks.length - 1; i >= 0; i--) {
-                const rock = rocks[i];
-                rock.x += rock.dx * scaleFactor;
-                rock.y += rock.dy * scaleFactor;
+    for (let i = rocks.length - 1; i >= 0; i--) {
+        const rock = rocks[i];
+        rock.x += rock.dx * scaleFactor;
+        rock.y += rock.dy * scaleFactor;
 
-                if (rock.isFlashing) {
-                    ctx.globalAlpha = rock.flashTimer % 2 === 0 ? 1 : 0.5;
-                    rock.flashTimer++;
-                    if (rock.flashTimer > 10) {
-                        rock.isFlashing = false;
-                        rock.flashTimer = 0;
-                        rocks.splice(i, 1); 
-                    }
-                }
-
-                if (rockImage && rockImage.complete && rockImage.naturalWidth !== 0) {
-                    ctx.drawImage(rockImage, rock.x, rock.y, rock.width, rock.height);
-                } else {
-                    ctx.fillStyle = rock.color;
-                    ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
-                }
-
-                if (player && rock.x + rock.width >= player.x
-                    && rock.x <= player.x + player.width
-                    && rock.y + rock.height >= player.y
-                    && rock.y <= player.y + player.height) {
-                    const damage = getRockDamage();
-                    player.hp -= damage;
-                    player.isFlashing = true;
-                    rock.isFlashing = true; 
-                    playSound(rockImpactSound);
-                    damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
-                }
-
-                if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
-                    rocks.splice(i, 1);
-                }
+        if (rock.isFlashing) {
+            ctx.globalAlpha = rock.flashTimer % 2 === 0 ? 1 : 0.5;
+            rock.flashTimer++;
+            if (rock.flashTimer > 10) {
+                rock.isFlashing = false;
+                rock.flashTimer = 0;
+                rocks.splice(i, 1); // Remove rock after flashing
             }
         }
+
+        if (rockImage && rockImage.complete && rockImage.naturalWidth !== 0) {
+            ctx.drawImage(rockImage, rock.x, rock.y, rock.width, rock.height);
+        } else {
+            ctx.fillStyle = rock.color;
+            ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
+        }
+
+        if (player && !rock.hasDealtDamage && rock.x + rock.width >= player.x
+            && rock.x <= player.x + player.width
+            && rock.y + rock.height >= player.y
+            && rock.y <= player.y + player.height) {
+            const damage = getRockDamage();
+            player.hp -= damage;
+            player.isFlashing = true;
+            rock.isFlashing = true; // Trigger flashing before removal
+            playSound(rockImpactSound);
+            damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
+            rock.hasDealtDamage = true; // Mark rock as having dealt damage
+        }
+
+        if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
+            rocks.splice(i, 1);
+        }
+    }
+}
+
 
         function updatePlayer(deltaTime) {
             if (player) {
@@ -977,8 +981,8 @@
                 const finalScoreValue = Math.round((playerScore * 10) - finalTime);
                 finalScore.textContent = `Final Score: ${finalScoreValue}`;
                 gameOverText.textContent = player && player.hp > 0 ? 'Victory' : 'Defeat';
-                submitHighScore(playerName, finalScoreValue, selectedPlayer, 'c922f825-4de5-4693-bdba-dd753c4e4a82').then(() => {
-                    updateHighScores('c922f825-4de5-4693-bdba-dd753c4e4a82').then(() => {
+                submitHighScore(playerName, finalScoreValue, selectedPlayer).then(() => {
+                    updateHighScores().then(() => {
                         gameOverUI.style.display = 'block';
                     });
                 });
@@ -1159,7 +1163,8 @@
         function acceptConsent() {
             document.cookie = "consent=true; max-age=31536000; path=/";
             consentBanner.style.display = 'none';
-            enableGameControls();
+            startScreen.style.display = 'block';
+            document.getElementById('consentOverlay').style.display = 'none';
         }
 
         function declineConsent() {
@@ -1172,33 +1177,24 @@
             const consent = document.cookie.split('; ').find(row => row.startsWith('consent='));
             if (!consent) {
                 consentBanner.style.display = 'block';
-                disableGameControls();
+                document.getElementById('consentOverlay').style.display = 'block';
             } else {
                 const consentValue = consent.split('=')[1];
                 if (consentValue === 'true') {
                     consentBanner.style.display = 'none';
-                    enableGameControls();
+                    startScreen.style.display = 'block';
+                    document.getElementById('consentOverlay').style.display = 'none';
                 } else {
                     consentBanner.style.display = 'block';
-                    disableGameControls();
+                    document.getElementById('consentOverlay').style.display = 'block';
                 }
             }
-        }
-
-        function disableGameControls() {
-            canvas.style.pointerEvents = 'none';
-            document.body.style.pointerEvents = 'none';
-            consentBanner.style.pointerEvents = 'auto';
-        }
-
-        function enableGameControls() {
-            canvas.style.pointerEvents = 'auto';
-            document.body.style.pointerEvents = 'auto';
         }
 
         window.onload = checkConsent;
         canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
     </script>
+    <div id="consentOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
 </body>
 </html>
