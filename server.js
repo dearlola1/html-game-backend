@@ -8,28 +8,33 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static('public')); // Serve static files from the 'public' directory
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const PORT = process.env.PORT || 3000;
+const API_KEY = 'c922f825-4de5-4693-bdba-dd753c4e4a82';
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const highScoreSchema = new mongoose.Schema({
   player: String,
   score: Number,
-  character: String,
+  character: String, // Add character field to schema
 }, { collection: 'highscores' });
 
 const HighScore = mongoose.model('HighScore', highScoreSchema);
 
+app.use((req, res, next) => {
+  const apiKey = req.headers['authorization'];
+  if (apiKey === `Bearer ${API_KEY}`) {
+    next();
+  } else {
+    res.status(403).send('Forbidden');
+  }
+});
+
 app.post('/highscores', async (req, res) => {
   try {
-    const apiKey = req.headers.authorization;
-    if (apiKey !== process.env.API_KEY) {
-      return res.status(403).send({ error: 'Forbidden' });
-    }
-
     const { player, score, character } = req.body;
     const highScore = new HighScore({ player, score, character });
     await highScore.save();
@@ -41,11 +46,6 @@ app.post('/highscores', async (req, res) => {
 
 app.get('/highscores', async (req, res) => {
   try {
-    const apiKey = req.headers.authorization;
-    if (apiKey !== process.env.API_KEY) {
-      return res.status(403).send({ error: 'Forbidden' });
-    }
-
     const highScores = await HighScore.find().sort({ score: -1 }).exec();
     res.status(200).send(highScores);
   } catch (error) {
@@ -53,10 +53,12 @@ app.get('/highscores', async (req, res) => {
   }
 });
 
+// Serve the index.html file for the root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Fallback for other routes
 app.get('*', (req, res) => {
   res.status(404).send('Page not found');
 });
