@@ -58,7 +58,7 @@
             height: 932px; /* iPhone 15 viewport height */
         }
 
-        #gameOver, #startScreen, #nameInput, #controls {
+        #gameOver, #startScreen, #nameInput, #controls, #consentBanner {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -88,7 +88,7 @@
             justify-content: space-around;
         }
 
-        #gameOver button, #startScreen button, #nameInput button, #controls button {
+        #gameOver button, #startScreen button, #nameInput button, #controls button, #consentBanner button {
             padding: 10px 20px;
             margin-top: 10px;
             font-size: 16px;
@@ -109,28 +109,6 @@
         .sound-toggle, .controls-button {
             margin-top: 20px;
             cursor: pointer;
-        }
-
-        #consent-banner {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #fff;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 9999; /* Ensure it is above other elements */
-        }
-
-        #consent-banner p {
-            margin: 0;
-        }
-
-        #consent-banner button {
-            margin-left: 10px;
-            padding: 5px 10px;
         }
     </style>
 </head>
@@ -197,15 +175,12 @@
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
-    <div id="consent-banner">
-        <p>
-            We use cookies to ensure you get the best experience. 
-            <a href="https://raw.githubusercontent.com/dearlola1/html-game-backend/main/policy.html" target="_blank">Learn more</a>
-        </p>
-        <div>
-            <button onclick="acceptCookies()">Accept</button>
-            <button onclick="declineCookies()">Decline</button>
-        </div>
+    <div id="consentBanner">
+        <h2>We value your privacy</h2>
+        <p>We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
+        <button onclick="acceptConsent()">Accept</button>
+        <button onclick="declineConsent()">Decline</button>
+        <p><a href="https://raw.githubusercontent.com/dearlola1/html-game-backend/main/policy.html" target="_blank">Learn More</a></p>
     </div>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916" crossorigin="anonymous"></script>
     <script>
@@ -226,6 +201,7 @@
         const playerNameInput = document.getElementById('playerName');
         const soundStatus = document.getElementById('soundStatus');
         const controlsScreen = document.getElementById('controls');
+        const consentBanner = document.getElementById('consentBanner');
 
         let isSoundOn = true;
 
@@ -251,32 +227,33 @@
         redBoxImage.src = 'https://i.imgur.com/f9ZMzUp.png';
 
         const drakeHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/drake%20hit%20sound.wav');
-        drakeHitSound.volume = 0.7; // Set volume to 70%
+        drakeHitSound.volume = 0.7; // Set volume to 80%
 
         const kendrickHitSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/kendrick%20hit%20sound.wav');
         kendrickHitSound.volume = 0.8; // Set volume to 80%
 
         const backgroundMusic = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/noit%20like%20us%20cheap.wav');
-        backgroundMusic.volume = 0.3; // Set volume to 30%
+        backgroundMusic.volume = 0.3; // Set volume to 50%
         backgroundMusic.loop = true;
 
         const purpleBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/purple%20box%20sound.wav');
         purpleBoxSound.volume = 0.6; // Set volume to 60%
 
         const brownBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/anita%20max.mp3');
-        brownBoxSound.volume = 0.9; // Set volume to 90%
+        brownBoxSound.volume = 0.9; // Set volume to 60%
 
         const redBoxSound = new Audio('https://raw.githubusercontent.com/dearlola1/html-game-backend/main/red%20box%20sound.wav');
         redBoxSound.volume = 0.6; // Set volume to 60%
-
-        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.wav');
-        rockImpactSound.volume = 0.7; // Set volume to 70%
 
         const wallImage1 = new Image();
         wallImage1.src = 'https://i.imgur.com/9sYPAtj.png';
 
         const wallImage2 = new Image();
         wallImage2.src = 'https://i.imgur.com/W8YPX4t.png';
+
+        const rockImage = new Image();
+        rockImage.src = 'https://i.imgur.com/rockImage.png'; // Replace with actual rock image URL
+        const rockImpactSound = new Audio('https://example.com/path/to/rock-impact-sound.wav'); // Replace with actual rock impact sound URL
 
         canvas.width = 430;
         canvas.height = 932;
@@ -291,53 +268,6 @@
         let playerScore = 0;
         let playerName = '';
         let currentWallImage = wallImage1;
-
-        function setCookie(name, value, days) {
-            const d = new Date();
-            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + d.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        }
-
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) === ' ') {
-                    c = c.substring(1);
-                }
-                if (c.indexOf(nameEQ) === 0) {
-                    return c.substring(nameEQ.length, c.length);
-                }
-            }
-            return null;
-        }
-
-        function acceptCookies() {
-            setCookie('cookieConsent', 'accepted', 365);
-            document.body.style.pointerEvents = 'auto'; // Re-enable interactions
-            document.getElementById('consent-banner').style.display = 'none';
-        }
-
-        function declineCookies() {
-            setCookie('cookieConsent', 'declined', 365);
-            window.location.href = 'https://www.google.com'; // Redirect to another site
-        }
-
-        function hideConsentBanner() {
-            document.getElementById('consent-banner').style.display = 'none';
-        }
-
-        function checkCookieConsent() {
-            const consent = getCookie('cookieConsent');
-            if (!consent) {
-                document.body.style.pointerEvents = 'none'; // Disable interactions
-                document.getElementById('consent-banner').style.pointerEvents = 'auto'; // Enable interactions with the banner
-            } else if (consent === 'accepted') {
-                hideConsentBanner();
-            }
-        }
 
         async function submitHighScore(playerName, score, character) {
             try {
@@ -377,22 +307,22 @@
             const highScores = await fetchHighScores();
             let drakeScores = highScores.filter(score => score.character === 'drake');
             let kendrickScores = highScores.filter(score => score.character === 'kendrick');
-
+            
             let drakeScoreSumValue = drakeScores.reduce((sum, score) => sum + score.score, 0);
             let kendrickScoreSumValue = kendrickScores.reduce((sum, score) => sum + score.score, 0);
-
+            
             drakeScoreSum.textContent = `Total Score: ${drakeScoreSumValue}`;
             kendrickScoreSum.textContent = `Total Score: ${kendrickScoreSumValue}`;
-
+            
             highScoreListDrake.innerHTML = '';
             highScoreListKendrick.innerHTML = '';
-
+            
             drakeScores.forEach(score => {
                 const li = document.createElement('li');
                 li.textContent = `${score.player}: ${score.score}`;
                 highScoreListDrake.appendChild(li);
             });
-
+            
             kendrickScores.forEach(score => {
                 const li = document.createElement('li');
                 li.textContent = `${score.player}: ${score.score}`;
@@ -721,7 +651,7 @@
                         wall.isFlashing = true;
                         damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
                         if (wall.hp <= 0) {
-                            walls.splice(i, 1);
+                            walls.splice(j, 1);
                         }
                         npcProjectiles.splice(i, 1);
                         break;
@@ -740,12 +670,22 @@
                 rock.x += rock.dx * scaleFactor;
                 rock.y += rock.dy * scaleFactor;
 
-                if (rock.image && rock.image.complete && rock.image.naturalWidth !== 0) {
-                    ctx.drawImage(rock.image, rock.x, rock.y, rock.width, rock.height);
+                if (rock.isFlashing) {
+                    ctx.globalAlpha = rock.flashTimer % 2 === 0 ? 1 : 0.5;
+                    rock.flashTimer++;
+                    if (rock.flashTimer > 10) {
+                        rock.isFlashing = false;
+                        rock.flashTimer = 0;
+                    }
+                }
+
+                if (rockImage.complete && rockImage.naturalWidth !== 0) {
+                    ctx.drawImage(rockImage, rock.x, rock.y, rock.width, rock.height);
                 } else {
-                    ctx.fillStyle = rock.color;
+                    ctx.fillStyle = 'gray';
                     ctx.fillRect(rock.x, rock.y, rock.width, rock.height);
                 }
+                ctx.globalAlpha = 1;
 
                 if (player && rock.x + rock.width >= player.x
                     && rock.x <= player.x + player.width
@@ -754,28 +694,16 @@
                     const damage = getRockDamage();
                     player.hp -= damage;
                     player.isFlashing = true;
-                    playerScore = Math.max(0, playerScore - damage); // Ensure score doesn't go negative
                     damageIndicators.push({ x: player.x + player.width / 2, y: player.y - 10, text: `-${damage}`, opacity: 1 });
+                    triggerCameraShake();
+                    playSound(rockImpactSound);
                     rocks.splice(i, 1);
-                    triggerRockImpact(rock);
                 }
 
-                if (rock.x > canvas.width || rock.x < 0 || rock.y > canvas.height || rock.y < 0) {
+                if (rock.y > canvas.height) {
                     rocks.splice(i, 1);
                 }
             }
-        }
-
-        function triggerRockImpact(rock) {
-            playSound(rockImpactSound);
-            rock.isFlashing = true;
-            rock.flashTimer = 0;
-            setTimeout(() => {
-                const index = rocks.indexOf(rock);
-                if (index !== -1) {
-                    rocks.splice(index, 1);
-                }
-            }, 100);
         }
 
         function drawBoxes(scaleFactor) {
@@ -1159,7 +1087,7 @@
             currentWallImage = currentWallImage === wallImage1 ? wallImage2 : wallImage1;
         }
 
-        function triggerFallingProjectile() {
+        function triggerFallingRock() {
             rocks.push({
                 x: canvas.width - 30,
                 y: canvas.height / 2.3,
@@ -1168,14 +1096,16 @@
                 dx: -3.0,
                 dy: 3.0,
                 owner: 'falling',
-                image: projectileImage
+                isFlashing: false,
+                flashTimer: 0,
+                image: rockImage
             });
             resetPlayerIdleTimeout(); // Reset the idle timer when the projectile falls
         }
 
         function resetPlayerIdleTimeout() {
             clearTimeout(playerIdleTimeout);
-            playerIdleTimeout = setTimeout(triggerFallingProjectile, 9000);
+            playerIdleTimeout = setTimeout(triggerFallingRock, 9000);
         }
 
         function gameLoop(currentTime) {
@@ -1213,7 +1143,27 @@
 
         startScreen.style.display = 'block';
 
-        checkCookieConsent();
+        // Consent Banner Handling
+        function acceptConsent() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            consentBanner.style.display = 'none';
+        }
+
+        function declineConsent() {
+            localStorage.setItem('cookieConsent', 'declined');
+            window.location.href = 'https://www.google.com';
+        }
+
+        function checkConsent() {
+            const consent = localStorage.getItem('cookieConsent');
+            if (consent === 'accepted') {
+                consentBanner.style.display = 'none';
+            } else {
+                consentBanner.style.display = 'block';
+            }
+        }
+
+        checkConsent();
     </script>
 </body>
 </html>
