@@ -69,6 +69,8 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            width: 100%; /* Make the gameOver UI as wide as the canvas */
+            max-width: 430px; /* Ensure it doesn't exceed canvas width */
         }
 
         #gameOver, #nameInput, #controls {
@@ -134,18 +136,25 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
+            margin-bottom: 10px;
         }
 
-        .highScoreSection ul li {
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .highScoreSection p {
+            font-size: 20px; /* Increase font size of total score texts */
+            margin: 5px 0; /* Reduce space between total score texts and numbers */
         }
 
         .total-score {
-            font-size: 24px;
+            font-size: 24px; /* Increase font size for total scores */
             font-weight: bold;
+        }
+
+        .highScoreSection ul li {
+            margin-bottom: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 16px; /* Keep player scores smaller */
         }
     </style>
 </head>
@@ -200,17 +209,17 @@
         </div>
         <div class="section highScoreSection">
             <div>
-    <h2>DRAKE</h2>
-    <p>Total Score</p>
-    <p id="drakeScoreSum">0</p>
-    <ul id="highScoreListDrake"></ul>
-</div>
-<div>
-    <h2>KENDRICK</h2>
-    <p>Total Score</p>
-    <p id="kendrickScoreSum">0</p>
-    <ul id="highScoreListKendrick"></ul>
-</div>
+                <h2>DRAKE</h2>
+                <p>Total Score</p>
+                <p id="drakeScoreSum" class="total-score">0</p>
+                <ul id="highScoreListDrake"></ul>
+            </div>
+            <div>
+                <h2>KENDRICK</h2>
+                <p>Total Score</p>
+                <p id="kendrickScoreSum" class="total-score">0</p>
+                <ul id="highScoreListKendrick"></ul>
+            </div>
         </div>
         <button onclick="restartGame()">Restart</button>
     </div>
@@ -355,8 +364,8 @@
             let drakeScoreSumValue = drakeScores.reduce((sum, score) => sum + score.score, 0);
             let kendrickScoreSumValue = kendrickScores.reduce((sum, score) => sum + score.score, 0);
             
-            drakeScoreSum.textContent = `Total Score: ${drakeScoreSumValue}`;
-            kendrickScoreSum.textContent = `Total Score: ${kendrickScoreSumValue}`;
+            drakeScoreSum.textContent = `${drakeScoreSumValue}`;
+            kendrickScoreSum.textContent = `${kendrickScoreSumValue}`;
             
             highScoreListDrake.innerHTML = '';
             highScoreListKendrick.innerHTML = '';
