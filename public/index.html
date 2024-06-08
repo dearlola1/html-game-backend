@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>KENDRICK VS DRAKE</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B17MN4MS09"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-B17MN4MS09');
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'analytics_storage': 'denied'
+        });
     </script>
     <style>
         body {
@@ -77,8 +77,8 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            width: 100%; /* Make the gameOver UI as wide as the canvas */
-            max-width: 430px; /* Ensure it doesn't exceed canvas width */
+            width: 100%;
+            max-width: 430px;
         }
 
         #gameOver, #nameInput, #controls {
@@ -148,12 +148,12 @@
         }
 
         .highScoreSection p {
-            font-size: 20px; /* Increase font size of total score texts */
-            margin: 5px 0; /* Reduce space between total score texts and numbers */
+            font-size: 20px;
+            margin: 5px 0;
         }
 
         .total-score {
-            font-size: 24px; /* Increase font size for total scores */
+            font-size: 24px;
             font-weight: bold;
         }
 
@@ -162,19 +162,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 16px; /* Keep player scores smaller */
+            font-size: 16px;
         }
 
         #kickStreamContainer {
-            display: none; /* Hide on mobile */
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
         }
 
-        @media (min-width: 1024px) {
+        @media (min-width: 768px) {
             #kickStreamContainer {
-                display: block; /* Show on desktop */
-                position: absolute;
-                right: 20px;
-                bottom: 20px;
+                display: block;
             }
         }
     </style>
@@ -246,14 +246,79 @@
     </div>
     <div id="consentBanner">
         <p>We use cookies to ensure you get the best experience on our website. <a href="https://kendrickvsdrake-afe300f0b023.herokuapp.com/policy.html" target="_blank">Learn more</a></p>
-        <button onclick="acceptConsent()">Accept</button>
+        <button id="grantConsent" onclick="acceptConsent()">Accept</button>
         <button onclick="declineConsent()">Decline</button>
+    </div>
+    <div id="kickStreamContainer">
+        <iframe 
+            src="https://player.kick.com/dearlola1?autoplay=true&muted=true" 
+            height="180" 
+            width="320" 
+            frameborder="0" 
+            scrolling="no" 
+            allowfullscreen="true">
+        </iframe>
     </div>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1329458568594916" crossorigin="anonymous"></script>
     <script>
         (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
     <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-B17MN4MS09', { 'send_page_view': false });
+
+        function acceptConsent() {
+            gtag('consent', 'update', {
+                'ad_storage': 'granted',
+                'analytics_storage': 'granted'
+            });
+            document.cookie = "consent=true; max-age=31536000; path=/";
+            consentBanner.style.display = 'none';
+            startScreen.style.display = 'block';
+            document.getElementById('consentOverlay').style.display = 'none';
+            loadGtagScript();
+        }
+
+        function declineConsent() {
+            gtag('consent', 'update', {
+                'ad_storage': 'denied',
+                'analytics_storage': 'denied'
+            });
+            document.cookie = "consent=false; max-age=31536000; path=/";
+            consentBanner.style.display = 'none';
+            window.location.href = 'https://www.google.com';
+        }
+
+        function loadGtagScript() {
+            var gtagScript = document.createElement('script');
+            gtagScript.async = true;
+            gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-B17MN4MS09';
+            document.head.appendChild(gtagScript);
+        }
+
+        function checkConsent() {
+            const consent = document.cookie.split('; ').find(row => row.startsWith('consent='));
+            if (!consent) {
+                consentBanner.style.display = 'block';
+                document.getElementById('consentOverlay').style.display = 'block';
+            } else {
+                const consentValue = consent.split('=')[1];
+                if (consentValue === 'true') {
+                    consentBanner.style.display = 'none';
+                    startScreen.style.display = 'block';
+                    document.getElementById('consentOverlay').style.display = 'none';
+                    loadGtagScript();
+                } else {
+                    consentBanner.style.display = 'block';
+                    document.getElementById('consentOverlay').style.display = 'block';
+                }
+            }
+        }
+
+        window.onload = checkConsent;
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('startScreen');
@@ -735,7 +800,7 @@
                         wall.isFlashing = true;
                         damageIndicators.push({ x: wall.x + wall.width / 2, y: wall.y - 10, text: `-${damage}`, opacity: 1 });
                         if (wall.hp <= 0) {
-                            walls.splice(i, 1);
+                            walls.splice(j, 1);
                         }
                         npcProjectiles.splice(i, 1);
                         break;
@@ -1223,51 +1288,10 @@
             gameLoopInterval = requestAnimationFrame(gameLoop);
         }
 
-        function acceptConsent() {
-            document.cookie = "consent=true; max-age=31536000; path=/";
-            consentBanner.style.display = 'none';
-            startScreen.style.display = 'block';
-            document.getElementById('consentOverlay').style.display = 'none';
-        }
-
-        function declineConsent() {
-            document.cookie = "consent=false; max-age=31536000; path=/";
-            consentBanner.style.display = 'none';
-            window.location.href = 'https://www.google.com';
-        }
-
-        function checkConsent() {
-            const consent = document.cookie.split('; ').find(row => row.startsWith('consent='));
-            if (!consent) {
-                consentBanner.style.display = 'block';
-                document.getElementById('consentOverlay').style.display = 'block';
-            } else {
-                const consentValue = consent.split('=')[1];
-                if (consentValue === 'true') {
-                    consentBanner.style.display = 'none';
-                    startScreen.style.display = 'block';
-                    document.getElementById('consentOverlay').style.display = 'none';
-                } else {
-                    consentBanner.style.display = 'block';
-                    document.getElementById('consentOverlay').style.display = 'block';
-                }
-            }
-        }
-
         window.onload = checkConsent;
         canvas.addEventListener('touchstart', handleTap);
         window.addEventListener('keydown', handleKeyDown);
     </script>
     <div id="consentOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
-    <div id="kickStreamContainer">
-        <iframe 
-            src="https://player.kick.com/dearlola1?autoplay=true?muted=true" 
-            height="180" 
-            width="320"
-            frameborder="0" 
-            scrolling="no" 
-            allowfullscreen="true"> 
-        </iframe>
-    </div>
 </body>
 </html>
